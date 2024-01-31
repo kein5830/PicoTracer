@@ -1,7 +1,8 @@
 //ADコンバータ内容取得関数
 int read_adc(int channel, int select) {
   int adcvalue = 0;
-  byte commandbits = B11000000;  //B(スタート)(1:シングルエンドモード)
+  //byte commandbits = B11000000;  //B(スタート)(1:シングルエンドモード)
+  byte commandbits = 0b11000000;  //B(スタート)(1:シングルエンドモード)
 
   //allow channel selection
   commandbits |= (channel << 5);
@@ -87,10 +88,14 @@ int pulseHz(int pulsefreq) {
 float SPpulse(int SP) {  //SP[mm/s]
   return SP / 1.5;       //1.5=１ステップあたりの距離
 }
-//メイン走行関数///////////////////////////////////////////////////////////////////////
 
 
-void meinrun() {
+
+
+//meinrun///////////////////////////////////////////////////////////////////////
+//500,550,600は速度違うが早くなるほど速度が上がりにくい→加速度が一定じゃない
+//一応走るけど抜けることもある
+void Scene0() {
   //ループの中で１回しか実行させないための変数
   static bool a = false;
   static unsigned int b = 0, c = 0;
@@ -98,7 +103,7 @@ void meinrun() {
   static float inputL = 0;
   static float inputR = 0;
   //基準速度
-  static int SP = 100;
+  static int SP = 700;
   //PID制御
   static float P = 0.0;
   static float D = 0.0;
@@ -108,11 +113,11 @@ void meinrun() {
   static int beforediff = 0;
   static int sum = 0;
   //Pゲイン
-  float pgain = 0.03;
+  float pgain = 1.0;
   //Dゲイン
-  float dgain = 0.1;
+  float dgain = 0;
   //Iゲイン
-  float igain = 0.0001;
+  float igain = 0.0005;
   //goalセンサーカウント
   static int count = 0, cross = 0;
   static bool tmp = 0, tmpc = 0;
@@ -139,7 +144,7 @@ void meinrun() {
   Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
+  Serial.println(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 100) {  //速度によって調整
@@ -157,7 +162,7 @@ void meinrun() {
     cross++;
     tmpc = 1;
   }
-  if (sensorLL > 600) {
+  if (sensorLL > 500) {
     tmpc = 0;
   }
 
@@ -196,15 +201,12 @@ void meinrun() {
   //前回の差分を保存
   beforediff = diff;
 
-
-
-
   //最大値補正
-  if (inputL > 100) {
-    inputL = 100.0;
+  if (inputL > SP) {
+    inputL = SP;
   }
-  if (inputR > 100) {
-    inputR = 100.0;
+  if (inputR > SP) {
+    inputR = SP;
   }
   //最小値補正
   if (inputL < 0) {
@@ -221,16 +223,16 @@ void meinrun() {
   }
 
 
-  Serial.print(" P:");
-  Serial.print(P);
-  Serial.print(" D:");
-  Serial.print(D);
-  Serial.print(" I:");
-  Serial.print(I);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR");
-  Serial.println(inputR);
+  // Serial.print(" P:");
+  // Serial.print(P);
+  // Serial.print(" D:");
+  // Serial.print(D);
+  // Serial.print(" I:");
+  // Serial.print(I);
+  // Serial.print(" inputL:");
+  // Serial.print(inputL);
+  // Serial.print(" inputR");
+  // Serial.println(inputR);
 
   //パルス周期　パルス幅変換
   intervalL = pulseHz(inputL);
@@ -244,7 +246,12 @@ void meinrun() {
 }
 
 
-void Ponly() {
+
+
+
+//感度が強すぎるのかわからんがちょっとでもカーブするとすぐに抜ける、直線も振動しまくる
+//P制御走行
+void Scene1() {
   //ループの中で１回しか実行させないための変数
   static bool a = false;
   static unsigned int b = 0, c = 0;
@@ -252,14 +259,14 @@ void Ponly() {
   static float inputL = 0;
   static float inputR = 0;
   //基準速度
-  static int SP = 100;
+  static int SP = 600;
   //PID制御
   static float P = 0.0;
 
   static int diff = 0;
   static int bias = 0;
   //Pゲイン
-  float pgain = 0.01;
+  float pgain = 0.8;
 
   //goalセンサーカウント
   static int count = 0, cross = 0;
@@ -277,11 +284,11 @@ void Ponly() {
   //     Serial.print(sensorLL,DEC);
   //     Serial.print(" ");
   sensorL = read_adc(ch1, SELPIN1);
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
+  // Serial.print(sensorL, DEC);
+  // Serial.print(" ");
   sensorR = read_adc(ch0, SELPIN2);
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
+  // Serial.print(sensorR, DEC);
+  // Serial.print(" ");
   sensorRR = read_adc(ch1, SELPIN2);
   //     Serial.print(sensorRR,DEC);
   //     Serial.print(" ");
@@ -305,11 +312,11 @@ void Ponly() {
     cross++;
     tmpc = 1;
   }
-  if (sensorLL > 600) {
+  if (sensorLL > 500) {
     tmpc = 0;
   }
   Serial.print(" tcou=");
-  Serial.println(count);
+  Serial.print(count);
   //ゴール後少し進んで停止
   if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
     if (b == 0) {
@@ -340,13 +347,12 @@ void Ponly() {
 
 
 
-
   //最大値補正
-  if (inputL > 100) {
-    inputL = 100.0;
+  if (inputL > SP) {
+    inputL = SP;
   }
-  if (inputR > 100) {
-    inputR = 100.0;
+  if (inputR > SP) {
+    inputR = SP;
   }
   //最小値補正
   if (inputL < 0) {
@@ -357,7 +363,7 @@ void Ponly() {
   }
 
   //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
+  if (sensorLL < SP && sensorRR < SP) {
     inputL = SP;
     inputR = SP;
   }
@@ -382,7 +388,10 @@ void Ponly() {
   //    Serial.println(StepL);
 }
 
-void accel() {
+
+
+//accel
+void Scene2() {
   //入力速度
   static float inputL = 0;
   static float inputR = 0;
@@ -425,8 +434,8 @@ void accel() {
   intervalR = pulseHz(inputR);
 }
 //2023/11/04
-//完走
-void accelrun() {
+//完走 accelrun
+void Scene3() {
 
   //ループの中で１回しか実行させないための変数
   static bool a = false;
@@ -435,7 +444,7 @@ void accelrun() {
   static float inputL = 0;
   static float inputR = 0;
   //基準速度[m/s]
-  static int SP = 220;  //250
+  static int SP = 250;  //250
   //PID制御
   static float P = 0.0;
   static float D = 0.0;
@@ -601,8 +610,8 @@ void accelrun() {
   //    Serial.println(StepL);
 }
 
-//加速テスト
-void accelrun2() {
+//accelrun2　加速テスト
+void Scene4() {
 
   //ループの中で１回しか実行させないための変数
   static bool a = false;

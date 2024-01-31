@@ -128,12 +128,12 @@ void setup() {
     digitalWrite(LED_BUILTIN, HIGH);
     break;
     }
-   if(a==0){   
-  Serial.print("ModeNumber:");
-  Serial.println(Mode);
-   a=1;
-   }  
-    }
+  if(a==0){   
+    Serial.print("ModeNumber:");
+    Serial.println(Mode);
+    a=1;
+    }  
+  }
      
 }
 
@@ -141,22 +141,22 @@ void loop() {
   switch(Mode)
   {
     case 0:
-      meinrun();
+     Scene0();
     break;
     case 1:
-     Ponly();
+     Scene1();
     break;
     case 2:
-    accel();
+     Scene2();
     break;
     case 3:
-    accelrun();  
+     Scene3();  
     break;
     case 4:
-    accelrun2();  
+     Scene4();  
     break;
     default:
-    Serial.println("error: no Number");
+     Serial.println("error: no Number");
     break;
     }
 }
