@@ -24,7 +24,7 @@
 #define CWCCW_L  20
 #define ENABLE_L  22
 
-//タイマー関連
+//タイマー関連(ハードウェアタイマー初期化)
 RPI_PICO_Timer  ITimer0(0);
 
 //パルス生成用変数
