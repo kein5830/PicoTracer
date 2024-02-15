@@ -103,7 +103,7 @@ void Scene0() {
   static float inputL = 0;
   static float inputR = 0;
   //基準速度
-  static int SP = 700;
+  static int SP = 800;
   //PID制御
   static float P = 0.0;
   static float D = 0.0;
@@ -113,7 +113,7 @@ void Scene0() {
   static int beforediff = 0;
   static int sum = 0;
   //Pゲイン
-  float pgain = 1.0;
+  float pgain = 0.5;
   //Dゲイン
   float dgain = 0;
   //Iゲイン
@@ -144,10 +144,10 @@ void Scene0() {
   Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
-  Serial.println(" ");
+  Serial.print(" ");
 
   //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 100) {  //速度によって調整
+  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
     count++;
     tmp = 1;
     count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
@@ -186,8 +186,8 @@ void Scene0() {
   //今回の差分
   diff = sensorL - sensorR - bias;  //biasは試走会で調整
 
-  //    Serial.print("diff:");
-  //    Serial.print(diff);
+    //  Serial.print("diff:");
+    //  Serial.print(diff);
   sum += diff;
   //P制御
   P = diff * pgain;
@@ -223,16 +223,16 @@ void Scene0() {
   }
 
 
-  // Serial.print(" P:");
-  // Serial.print(P);
-  // Serial.print(" D:");
-  // Serial.print(D);
-  // Serial.print(" I:");
-  // Serial.print(I);
-  // Serial.print(" inputL:");
-  // Serial.print(inputL);
-  // Serial.print(" inputR");
-  // Serial.println(inputR);
+  Serial.print(" P:");
+  Serial.print(P);
+  Serial.print(" D:");
+  Serial.print(D);
+  Serial.print(" I:");
+  Serial.print(I);
+  Serial.print(" inputL:");
+  Serial.print(inputL);
+  Serial.print(" inputR");
+  Serial.println(inputR);
 
   //パルス周期　パルス幅変換
   intervalL = pulseHz(inputL);
@@ -259,14 +259,14 @@ void Scene1() {
   static float inputL = 0;
   static float inputR = 0;
   //基準速度
-  static int SP = 600;
+  static int SP = 500;
   //PID制御
   static float P = 0.0;
 
   static int diff = 0;
   static int bias = 0;
   //Pゲイン
-  float pgain = 0.8;
+  float pgain = 1.0;
 
   //goalセンサーカウント
   static int count = 0, cross = 0;
@@ -433,6 +433,9 @@ void Scene2() {
   intervalL = pulseHz(inputL);
   intervalR = pulseHz(inputR);
 }
+
+
+
 //2023/11/04
 //完走 accelrun
 void Scene3() {
@@ -602,8 +605,8 @@ void Scene3() {
   //パルス周期　パルス幅変換
   intervalL = pulseHz(inputL);
   intervalR = pulseHz(inputR);
-     Serial.print("count=");
-     Serial.print(count);
+  Serial.print("count=");
+  Serial.print(count);
   //    Serial.print("cross:");
   //    Serial.print(cross);
   //    Serial.print(" StepL");
@@ -619,29 +622,11 @@ void Scene4() {
   //入力速度
   static float inputL = 0;
   static float inputR = 0;
-  //基準速度[m/s]
+  //最高速度[m/s]
   static int SP = 1500;  //250
-  //PID制御
-  static float P = 0.0;
-  static float D = 0.0;
-  static float I = 0.0;
-  static int diff = 0;
-  static int bias = 9;
-  static int beforediff = 0;
-  static int sum = 0;
-  //Pゲイン
-  float pgain = 0.03;
-  //Dゲイン
-  float dgain = 0.1;
-  //Iゲイン
-  float igain = 0.0001;
-  //goalセンサーカウント
-  static int count = 0, cross = 0;
-  static bool tmp = 0, tmpc = 0;
-
 
   //加速度[mm/s/s]
-  float ac = 25;
+  float ac = 100;
   //1周期あたりにどのくらい加速するかの量
   float ac1 = ac / 1500;  //25000:メインループの周波数
   //現在の速度
@@ -658,117 +643,19 @@ void Scene4() {
 
   Speed = Speed + ac1;
 
-  //
   Serial.print("speed");
   Serial.println(inputL);
   //最大速度設定
   if (Speed > SP) {
     Speed = SP;
   }
+  
+  inputL = SPpulse(Speed);
+  inputR = SPpulse(Speed);
 
-
-  sensorLL = read_adc(ch0, SELPIN1);
-  //     Serial.print(sensorLL,DEC);
-  //     Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
-  //     Serial.print(sensorRR,DEC);
-  //     Serial.print(" ");
-  sensorGoal = analogRead(GOALSENSOR);
-  //     Serial.print(sensorGoal,DEC);
-  //     Serial.print(" ");
-
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 100) {  //速度によって調整
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorGoal > 900) {
-    tmp = 0;
-  }
-
-  //ラインクロスカウンタ
-  if (tmpc == 0 && sensorLL < 300 && sensorL < 300 && sensorR < 300) {  //速度によって調整
-    cross++;
-    tmpc = 1;
-  }
-  if (sensorLL > 600) {
-    tmpc = 0;
-  }
-
-  //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
-    if (b == 0) {
-      StepL = 0;
-      StepR = 0;
-    }
-    b++;
-    //        Serial.print(" tmp=");
-    //        Serial.println(tmp);
-    if (distance > 230 && tmp == 0) {  //停止位置は試走会で調整
-                                       //            Serial.print("Motor_Stop");
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
-    }
-  }
-
-
-  //今回の差分
-  diff = sensorL - sensorR - bias;
-
-  //    Serial.print("diff:");
-  //    Serial.print(diff);
-  sum += diff;
-  //P制御
-  P = diff * pgain;
-  //D制御
-  D = (beforediff - diff) * dgain;
-  //I制御
-  I = sum * igain;
-  inputL = SPpulse(Speed);// + (P + D + I)
-  inputR = SPpulse(Speed);// - (P + D + I)
-
-  //前回の差分を保存
-  beforediff = diff;
-
-
-
-  //最大値補正
-  if (inputL >= SPpulse(Speed)) {
-    inputL = SPpulse(Speed);
-  }
-  if (inputR >= SPpulse(Speed)) {
-    inputR = SPpulse(Speed);
-  }
-
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
-  //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SPpulse(Speed);
-    inputR = SPpulse(Speed);
-  }
-
-
+  
   Serial.print(" SP:");
   Serial.print(SPpulse(Speed));
-  // Serial.print(" D:");
-  // Serial.print(D);
-  // Serial.print(" I:");
-  // Serial.print(I);
   Serial.print(" inputL:");
   Serial.print(inputL);
   Serial.print(" inputR");
@@ -778,10 +665,5 @@ void Scene4() {
   //パルス周期　パルス幅変換
   intervalL = pulseHz(inputL);
   intervalR = pulseHz(inputR);
-  //    Serial.print("count=");
-  //    Serial.print(count);
-  //    Serial.print("cross:");
-  //    Serial.print(cross);
-  //    Serial.print(" StepL");
-  //    Serial.println(StepL);
+  
 }
