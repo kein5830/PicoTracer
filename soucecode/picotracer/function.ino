@@ -34,49 +34,25 @@ int read_adc(int channel, int select) {
 
 //タイマー割り込み関数
 bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
-  static int del = 0, der = 0;
-  //タイマー割り込みはピンLED_BUILTINを切り替えます
-  toggle0 = toggle0 + 1;
-  toggle1 = toggle1 + 1;
-  //toggleがintervalの値まで来たらpulseを上下してtoggleを0にする
-  if (toggle0 >= intervalL) {
-    pulseL = !pulseL;
-    //距離計測用ステップカウンタ
-    del++;
-    if (del >= 2) {
-      StepL++;
-      distanceL = StepL * 1.5;
-      del = 0;
-    }
-    //    Serial.print("StepL:");
-    //    Serial.print(StepL);
-    toggle0 = 0;
-  }
-  if (toggle1 >= intervalR) {
-    pulseR = !pulseR;
-    //距離計測用ステップカウンタ
-    der++;
-    if (der >= 2) {
-      StepR++;
-      distanceR = StepR * 1.5;
-      der = 0;
-    }
-    //    Serial.print(" StepR:");
-    //    Serial.print(StepR);
-    toggle1 = 0;
-  }
-  distance = (distanceL + distanceR) / 2.0;
-  //        Serial.print("pulseL=");
-  //        Serial.print(toggle0);
-  //        Serial.print("  pulseR=");
-  //        Serial.println(toggle1);
-
+  // Serial.println("handler0");
+  pulseL=!pulseL;
   //パルスを入力
   digitalWrite(CLOCK_L, pulseL);
+  // digitalWrite(CLOCK_R, pulseR);
+
+  return true;
+}
+
+bool TimerHandler1(struct repeating_timer *t) {  //割り込む関数
+  // Serial.println("handler1");
+  pulseR=!pulseR;
+  //パルスを入力
+  // digitalWrite(CLOCK_L, pulseL);
   digitalWrite(CLOCK_R, pulseR);
 
   return true;
 }
+
 //パルス周波数⇨パルス幅変換
 int pulseHz(int pulsefreq) {
   return 10000 / (pulsefreq * 2);
@@ -626,9 +602,9 @@ void Scene4() {
   static int SP = 1500;  //250
 
   //加速度[mm/s/s]
-  float ac = 100;
+  float ac = 1;
   //1周期あたりにどのくらい加速するかの量
-  float ac1 = 1;//ac / 1500;  //25000:メインループの周波数
+  float ac1 = 0.01;//ac / 1500;  //25000:メインループの周波数
   //現在の速度
   static float Speed = 0.0;
 
@@ -637,25 +613,35 @@ void Scene4() {
   //タイマースタート処理 １秒間に1万回
   if (a == false) {
     ITimer0.stopTimer();
-    ITimer0.attachInterrupt(10000, TimerHandler0);  //左モーター
+    ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
+    ITimer1.stopTimer();
+    ITimer1.attachInterrupt(inputR, TimerHandler1);  //左モーター
     a = true;
   }
-
-  // Speed = Speed + ac1;
-
+    
+ 
+  Speed = Speed + ac1;
+  if(inputL<2000){
+    if(Speed>1.0){
+      inputL = inputL+ac;
+      inputR = inputR+ac;
+      a=false;
+      Speed=0.0;
+    }
+  }
   // Serial.print("speed");
   // Serial.println(inputL);
   
   // inputL = SPpulse(Speed);
   // inputR = SPpulse(Speed);
   
-  inputL = inputL-ac1;
-  inputR = inputR-ac1;
+  inputL = inputL+ac1;
+  inputR = inputR+ac1;
   
   //最大速度設定
-  if (inputL < 3 || inputR < 3) {
-    inputL = 3;
-    inputR = 3;
+  if (inputL > 2000 || inputR > 2000) {
+    inputL = 2000;
+    inputR = 2000;
   }
 
   Serial.print(" Speed:");
@@ -671,5 +657,5 @@ void Scene4() {
   intervalL = inputL;
   intervalR = inputR;
 
-  delay(500);
+
 }

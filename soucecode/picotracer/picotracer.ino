@@ -26,7 +26,9 @@
 
 //タイマー関連
 RPI_PICO_Timer ITimer0(0);
-
+// Select the timer you're using, from ITimer0(0)-ITimer3(3)
+// Init RPI_PICO_Timer
+RPI_PICO_Timer ITimer1(1);
 //パルス生成用変数
 unsigned int toggle0 = 0;
 unsigned int toggle1 = 0;
@@ -54,6 +56,7 @@ float distance = 0.0;
 //プロトタイプ宣言
 int read_adc(int select, int channel);          //ADコンバータ
 bool TimerHandler0(struct repeating_timer *t);  //割り込む関数
+
 // void meinrun();                                 //メイン走行関数
 // void Ponly();                                   //テスト走行関数
 // void accel();
@@ -134,7 +137,21 @@ void setup() {
       a = 1;
     }
   }
+
+   // Interval in unsigned long microseconds
+  if (ITimer0.attachInterruptInterval(5000L * 1000, TimerHandler0)){
+    Serial.println("Starting ITimer OK, millis() = " + String(millis()));
+  }else{
+    Serial.println("Can't set ITimer. Select another freq. or timer");
+  }
+   // Interval in unsigned long microseconds
+  if (ITimer1.attachInterruptInterval(5000L * 1000, TimerHandler1)){
+    Serial.println("Starting ITimer OK, millis() = " + String(millis()));
+  }else{
+    Serial.println("Can't set ITimer. Select another freq. or timer");
+  }
 }
+
 
 void loop() {
   switch (Mode) {
