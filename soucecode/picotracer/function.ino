@@ -604,7 +604,7 @@ void Scene4() {
   //加速度[mm/s/s]
   float ac = 1;
   //1周期あたりにどのくらい加速するかの量
-  float ac1 = 0.01;//ac / 1500;  //25000:メインループの周波数
+  float ac1 = 0.0001;//ac / 1500;  //25000:メインループの周波数
   //現在の速度
   static float Speed = 0.0;
 
@@ -644,18 +644,17 @@ void Scene4() {
     inputR = 2000;
   }
 
-  Serial.print(" Speed:");
-  Serial.print(Speed);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR");
-  Serial.println(inputR);
+  // Serial.print(" Speed:");
+  // Serial.print(Speed);
+  // Serial.print(" inputL:");
+  // Serial.print(inputL);
+  // Serial.print(" inputR");
+  // Serial.println(inputR);
 
 
   //パルス周期　パルス幅変換
   //interval:5000最遅、３最速
   intervalL = inputL;
   intervalR = inputR;
-
-
+// delay(1);
 }
