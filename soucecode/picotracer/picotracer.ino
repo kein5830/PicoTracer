@@ -1,6 +1,6 @@
 //タイマーライブラリ
 #include "RPi_Pico_TimerInterrupt.h"
-
+#include "hardware/pwm.h"
 //メニュー選択スイッチピン up:前側　down:後ろ側
 #define upswitch 17
 #define downswitch 16
@@ -24,11 +24,11 @@
 #define CWCCW_L 20
 #define ENABLE_L 22
 
-//タイマー関連
-RPI_PICO_Timer ITimer0(0);
-// Select the timer you're using, from ITimer0(0)-ITimer3(3)
-// Init RPI_PICO_Timer
-RPI_PICO_Timer ITimer1(1);
+// //タイマー関連
+// RPI_PICO_Timer ITimer0(0);
+// // Select the timer you're using, from ITimer0(0)-ITimer3(3)
+// // Init RPI_PICO_Timer
+// RPI_PICO_Timer ITimer1(1);
 //パルス生成用変数
 unsigned int toggle0 = 0;
 unsigned int toggle1 = 0;
@@ -55,7 +55,7 @@ float distanceR = 0.0;
 float distance = 0.0;
 //プロトタイプ宣言
 int read_adc(int select, int channel);          //ADコンバータ
-bool TimerHandler0(struct repeating_timer *t);  //割り込む関数
+// bool TimerHandler0(struct repeating_timer *t);  //割り込む関数
 
 // void meinrun();                                 //メイン走行関数
 // void Ponly();                                   //テスト走行関数
@@ -100,7 +100,29 @@ void setup() {
 
   //シリアル通信用
   Serial.begin(115200);
+  
+  //PWM速度変化https://rikei-tawamure.com/entry/2021/02/08/213335
+  gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);
+  gpio_set_function(CLOCK_L, GPIO_FUNC_PWM);
 
+  uint pwm_slice1 = pwm_gpio_to_slice_num(CLOCK_R);
+  uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
+
+ //周期0.02s
+  pwm_set_wrap(pwm_slice1, 1100);
+  pwm_set_wrap(pwm_slice2, 1100);
+  //duty
+  pwm_set_chan_level(pwm_slice1, PWM_CHAN_A, 1000);
+  pwm_set_chan_level(pwm_slice2, PWM_CHAN_B, 1000);
+  pwm_set_clkdiv(pwm_slice1, 100.0);
+  pwm_set_clkdiv(pwm_slice2, 100.0);
+
+
+  pwm_set_enabled(pwm_slice1, true);
+  pwm_set_enabled(pwm_slice2, true);
+
+  // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
+  // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
   //モード選択待機
   while (1) {
     static bool sw1 = 0;
@@ -138,18 +160,18 @@ void setup() {
     }
   }
 
-   // Interval in unsigned long microseconds
-  if (ITimer0.attachInterruptInterval(5000L * 1000, TimerHandler0)){
-    Serial.println("Starting ITimer OK, millis() = " + String(millis()));
-  }else{
-    Serial.println("Can't set ITimer. Select another freq. or timer");
-  }
-   // Interval in unsigned long microseconds
-  if (ITimer1.attachInterruptInterval(5000L * 1000, TimerHandler1)){
-    Serial.println("Starting ITimer OK, millis() = " + String(millis()));
-  }else{
-    Serial.println("Can't set ITimer. Select another freq. or timer");
-  }
+  //  // Interval in unsigned long microseconds
+  // if (ITimer0.attachInterruptInterval(5000L * 1000, TimerHandler0)){
+  //   Serial.println("Starting ITimer OK, millis() = " + String(millis()));
+  // }else{
+  //   Serial.println("Can't set ITimer. Select another freq. or timer");
+  // }
+  //  // Interval in unsigned long microseconds
+  // if (ITimer1.attachInterruptInterval(5000L * 1000, TimerHandler1)){
+  //   Serial.println("Starting ITimer OK, millis() = " + String(millis()));
+  // }else{
+  //   Serial.println("Can't set ITimer. Select another freq. or timer");
+  // }
 }
 
 
