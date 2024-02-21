@@ -65,6 +65,9 @@ float SPpulse(int SP);
 // void accelrun2();
 int pulseHz(int pulsefreq);  //パルス周波数⇨パルス幅変換
 
+uint pwm_slice1 = pwm_gpio_to_slice_num(CLOCK_R);
+uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
+
 void setup() {
   //マイコン電源確認用LEDの点灯
   pinMode(LED_BUILTIN, OUTPUT);
@@ -105,21 +108,20 @@ void setup() {
   gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);
   gpio_set_function(CLOCK_L, GPIO_FUNC_PWM);
 
-  uint pwm_slice1 = pwm_gpio_to_slice_num(CLOCK_R);
-  uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
+  
 
  //周期0.02s
   pwm_set_wrap(pwm_slice1, 1100);
   pwm_set_wrap(pwm_slice2, 1100);
-  //duty
-  pwm_set_chan_level(pwm_slice1, PWM_CHAN_A, 1000);
-  pwm_set_chan_level(pwm_slice2, PWM_CHAN_B, 1000);
+  //duty　値を直接指定(固定値)　今回の用途では変更する必要なし
+  pwm_set_chan_level(pwm_slice1, PWM_CHAN_A, 500);
+  pwm_set_chan_level(pwm_slice2, PWM_CHAN_B, 500);
+  //システムクロックを100分割　分周比１００
   pwm_set_clkdiv(pwm_slice1, 100.0);
   pwm_set_clkdiv(pwm_slice2, 100.0);
 
 
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
+
 
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);

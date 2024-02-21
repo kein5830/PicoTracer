@@ -53,17 +53,17 @@ bool TimerHandler1(struct repeating_timer *t) {  //割り込む関数
   return true;
 }
 
-//パルス周波数⇨パルス幅変換
-int pulseHz(int pulsefreq) {
-  return 10000 / (pulsefreq * 2);
-  /*(pulsefreq*2)パルス周波数を単純な割り込み周波数に変更
-    10000/  1秒間で10000カウントなので10000をどのくらいの数で分けるかの計算をする
-    */
+//パルス周波数⇨Wrap値に変換
+float Hz_wrap(int pulsefreq){
+  //F=sysclock/(wrap+1)*clkdiv
+  return (125000000/(pulsefreq*100))-1;
+  //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
 }
-//速度⇨パルス周波数
-float SPpulse(int SP) {  //SP[mm/s]
-  return SP / 1.5;       //1.5=１ステップあたりの距離
-}
+
+// //速度⇨パルス周波数
+// float SPpulse(int SP) {  //SP[mm/s]
+//   return SP / 1.5;       //1.5=１ステップあたりの距離
+// }
 
 
 
@@ -211,8 +211,8 @@ void Scene0() {
   Serial.println(inputR);
 
   //パルス周期　パルス幅変換
-  intervalL = pulseHz(inputL);
-  intervalR = pulseHz(inputR);
+  // intervalL = pulseHz(inputL);
+  // intervalR = pulseHz(inputR);
   //    Serial.print("count=");
   //    Serial.print(count);
   //    Serial.print("cross:");
@@ -353,8 +353,8 @@ void Scene1() {
   Serial.println(inputR);
 
   //パルス周期　パルス幅変換
-  intervalL = pulseHz(inputL);
-  intervalR = pulseHz(inputR);
+  // intervalL = pulseHz(inputL);
+  // intervalR = pulseHz(inputR);
 
   //    Serial.print("count=");
   //    Serial.print(count);
@@ -403,11 +403,11 @@ void Scene2() {
     Speed = mspeed;
   }
   //速度をパルス周波数に変換し入力
-  inputL = SPpulse(Speed);
-  inputR = SPpulse(Speed);
+  // inputL = SPpulse(Speed);
+  // inputR = SPpulse(Speed);
 
-  intervalL = pulseHz(inputL);
-  intervalR = pulseHz(inputR);
+  // intervalL = pulseHz(inputL);
+  // intervalR = pulseHz(inputR);
 }
 
 
@@ -535,8 +535,8 @@ void Scene3() {
   D = (beforediff - diff) * dgain;
   //I制御
   I = sum * igain;
-  inputL = SPpulse(Speed) + (P + D + I);
-  inputR = SPpulse(Speed) - (P + D + I);
+  // inputL = SPpulse(Speed) + (P + D + I);
+  // inputR = SPpulse(Speed) - (P + D + I);
 
   //前回の差分を保存
   beforediff = diff;
@@ -561,13 +561,13 @@ void Scene3() {
 
   //クロス通過時は速度を固定する
   if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SPpulse(Speed);
-    inputR = SPpulse(Speed);
+    // inputL = SPpulse(Speed);
+    // inputR = SPpulse(Speed);
   }
 
 
-  Serial.print(" SP:");
-  Serial.print(SPpulse(Speed));
+  // Serial.print(" SP:");
+  // Serial.print(SPpulse(Speed));
   // Serial.print(" D:");
   // Serial.print(D);
   // Serial.print(" I:");
@@ -579,8 +579,8 @@ void Scene3() {
 
 
   //パルス周期　パルス幅変換
-  intervalL = pulseHz(inputL);
-  intervalR = pulseHz(inputR);
+  // intervalL = pulseHz(inputL);
+  // intervalR = pulseHz(inputR);
   Serial.print("count=");
   Serial.print(count);
   //    Serial.print("cross:");
@@ -599,18 +599,28 @@ void Scene4() {
   static int inputL = 100.0;
   static int inputR = 100.0;
   //最高速度[m/s]
-  static int SP = 1500;  //250
+  static int SP = 3000;  //250
 
   //加速度[mm/s/s]
   float ac = 1;
   //1周期あたりにどのくらい加速するかの量
   float ac1 = 0.0001;//ac / 1500;  //25000:メインループの周波数
   //現在の速度
-  static float Speed = 0.0;
+  static float Speed = 3000.0;
+  //PWM周波数
+  static float LFreq = 0.0;
+  static float RFreq = 0.0;
   
-//PWM
-  analogWriteFreq(500);
-  analogWrite(8,127);
+  //PWM
+
+  pwm_set_wrap(pwm_slice1, Hz_wrap(1000));
+  pwm_set_wrap(pwm_slice2, Hz_wrap(1000));
+  Speed=Speed-0.01;
+  if(Speed<1100){
+    Speed=1100;
+  }
+  pwm_set_enabled(pwm_slice1, true);
+  pwm_set_enabled(pwm_slice2, true);
 
   // analogWrite(21,127);
 
@@ -649,8 +659,8 @@ void Scene4() {
   //   inputR = 2000;
   // }
 
-  // Serial.print(" Speed:");
-  // Serial.print(Speed);
+  Serial.print(" Speed:");
+  Serial.println(Hz_wrap(1000));
   // Serial.print(" inputL:");
   // Serial.print(inputL);
   // Serial.print(" inputR");
