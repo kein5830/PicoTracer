@@ -51,7 +51,7 @@ bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
 }
 
 //パルス周波数⇨Wrap値に変換
-float Hz_wrap(int pulsefreq){
+float Hz_wrap(float pulsefreq){
   //F=sysclock/(wrap+1)*clkdiv
   return (125000000/(pulsefreq*100))-1;
   //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
@@ -82,6 +82,7 @@ void Reset(){
   //ラインカウンタ
   count = 0, cross = 0;
   tmp = 0, tmpc = 0;
+  Serial.print("Reset");
 }
 
 
@@ -90,16 +91,19 @@ void Reset(){
 //固定速度走行 PI制御
 void Scene0() {
   while(1){
-  
-  //基準速度
-  SP = 500;
-  //Pゲイン
-  pgain = 0.4;
-  //Dゲイン
-  dgain = 0;
-  //Iゲイン
-  igain = 0.0004;
 
+  if(c == 0){
+    //基準速度
+    SP = 500;
+    //Pゲイン
+    pgain = 0.4;
+    //Dゲイン
+    dgain = 0;
+    //Iゲイン
+    igain = 0.0004;
+    // 1回しか入らないようcを1にする
+    c=1;
+  }
 
 
   sensorLL = read_adc(ch0, SELPIN1);
@@ -119,7 +123,7 @@ void Scene0() {
   // Serial.println(" ");
 
   //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
+  if(tmp == 0 && sensorGoal < 300) {  //速度によって調整
     count++;
     tmp = 1;
     count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
@@ -234,11 +238,14 @@ void Scene0() {
 void Scene1() {
   while(1){
   
-  //基準速度
-  static int SP = 600;
-  //Pゲイン
-  float pgain = 0.55;
- 
+  if(c == 0){
+    //基準速度
+     SP = 600;
+    //Pゲイン
+    pgain = 0.55;
+    // 1回しか入らないようcを1にする
+    c = 1;
+ }
   sensorLL = read_adc(ch0, SELPIN1);
   Serial.print(sensorLL, DEC);
   Serial.print(" ");
@@ -276,7 +283,7 @@ void Scene1() {
   }
 
   //ゴール後少し進んで停止
-  if (count = 2) {  //一時的
+  if (count == 2) {  //一時的
     if (b == 0) {
       //タイマースタート処理
       ITimer0.stopTimer();
@@ -357,7 +364,11 @@ void Scene1() {
   Serial.print(" tmp:");
   Serial.print(tmp);
   Serial.print(" tmpc:");
-  Serial.println(tmpc);
+  Serial.print(tmpc);
+  Serial.print(" distance:");
+  Serial.print(distance);
+  Serial.print(" SP:");
+  Serial.println(SP);
   }
 }
 
@@ -365,16 +376,19 @@ void Scene1() {
 //accel
 void Scene2() {
   while(1){
-
-  //基準速度
-  static float SP = 0;
-  //Pゲイン
-  float pgain = 0.35;
-  //Dゲイン
-  float dgain = 0;
-  //Iゲイン
-  float igain = 0.0015;
-
+  
+  if(c == 0){
+    //基準速度
+    SP = 0;
+    //Pゲイン
+    pgain = 0.35;
+    //Dゲイン
+    dgain = 0;
+    //Iゲイン
+    igain = 0.0015;
+    // 1回しか入らないようcを1にする
+    c = 1;
+  }
 
   sensorLL = read_adc(ch0, SELPIN1);
   // Serial.print(sensorLL, DEC);
@@ -514,17 +528,18 @@ void Scene2() {
 void Scene3() {
   while(1){
 
+  if(c == 0){
   //基準速度[m/s]
-  static int SP = 250;  //250
-
-  //Pゲイン
-  float pgain = 0.02;
-  //Dゲイン
-  float dgain = 0.1;
-  //Iゲイン
-  float igain = 0.0002;
-
-
+    SP = 250;  
+    //Pゲイン
+    pgain = 0.02;
+    //Dゲイン
+    dgain = 0.1;
+    //Iゲイン
+    igain = 0.0002;
+    // 1回しか入らないようcを1にする
+    c = 1;
+  }
 
   //加速度[mm/s/s]
   float ac = 70;
@@ -699,8 +714,13 @@ void Scene4() {
   Serial.print(sw2);
   Serial.print(" Speed:");
   Serial.println(Speed);
-  if (sw2 == 1) {
+  sw1 = digitalRead(upswitch);
+  sw2 = digitalRead(downswitch);
+  if (sw1 == 1) {
     Run = 0,Mode = 0,Speed=0.0;
+    digitalWrite(ENABLE_L, HIGH);
+    digitalWrite(ENABLE_R, HIGH);
+    Reset();
     break;
   }
   }

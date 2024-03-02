@@ -61,7 +61,7 @@ static unsigned int b = 0, c = 0;
 static float inputL = 0;
 static float inputR = 0;
 //基準速度
-static int SP = 0;
+static float SP = 0;
 //PID制御
 static float P = 0.0;
 static float D = 0.0;
@@ -179,8 +179,6 @@ void loop() {
 
   if (sw2 == 1) {
     Run++;
-    digitalWrite(ENABLE_L, LOW);
-    digitalWrite(ENABLE_R, LOW);
     digitalWrite(LED_BUILTIN, LOW);
     a=1;
     delay(300);
@@ -203,6 +201,9 @@ void loop() {
     delay(100);
     digitalWrite(LED_BUILTIN, HIGH);
     a = 0;
+    //モーター電源オン
+    digitalWrite(ENABLE_L, LOW);
+    digitalWrite(ENABLE_R, LOW);
     }
   
     switch (Mode) {
