@@ -725,3 +725,27 @@ void Scene4() {
   }
   }
 }
+//電圧テスト
+void Scene5() {
+  while(1){
+  //電圧
+  sensorGoal = analogRead(27);
+  //速度
+  //現在の速度
+  static float Speed = 0.0;
+
+  Speed=Speed+0.01;
+  if(Speed>1500){
+    Speed=1500;
+  }
+  Serial.println(sensorGoal);
+  if (sw1 == 1) {
+    Run = 0,Mode = 0,Speed=0.0;
+    digitalWrite(ENABLE_L, HIGH);
+    digitalWrite(ENABLE_R, HIGH);
+    Reset();
+    break;
+  }
+  
+  }
+}

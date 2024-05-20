@@ -130,7 +130,7 @@ void setup() {
 
   //シリアル通信用
   Serial.begin(115200);
-  
+  analogReadResolution(12);
   //PWM速度変化https://rikei-tawamure.com/entry/2021/02/08/213335
   gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);
   gpio_set_function(CLOCK_L, GPIO_FUNC_PWM);
@@ -221,6 +221,9 @@ void loop() {
         break;
       case 4:
         Scene4();
+        break;
+      case 5:
+        Scene5();
         break;
       default:
         Serial.println("Select Number");
