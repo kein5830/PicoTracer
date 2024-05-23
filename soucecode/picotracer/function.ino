@@ -729,6 +729,7 @@ void Scene4() {
 void Scene5() {
   while(1){
   //電圧
+  //1.0k 5.1k
   sensorGoal = analogRead(27);
   //速度
   //現在の速度
