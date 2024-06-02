@@ -3570,6 +3570,32 @@
     )
   )
 
+  (symbol (lib_id "Device:R") (at 167.64 161.29 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid a78dfcaa-ef56-4451-9977-424a8a47fc63)
+    (property "Reference" "R15" (at 170.18 160.02 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "3.3kΩ" (at 170.18 162.56 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "" (at 165.862 161.29 90)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 167.64 161.29 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "2" (uuid 2bae7258-400f-4e36-9284-408f2bcc06a6))
+    (pin "1" (uuid 48e3c3c2-ab70-4b4c-8301-9870b29cd64e))
+    (instances
+      (project "PicoTracer"
+        (path "/f79d951e-a1b3-4edf-883f-79f37eda87da"
+          (reference "R15") (unit 1)
+        )
+      )
+    )
+  )
+
   (symbol (lib_id "Switch:SW_Push") (at 271.78 135.89 90) (mirror x) (unit 1)
     (in_bom yes) (on_board yes) (dnp no)
     (uuid acd74e35-6672-40ef-a628-78ef4659dd81)
@@ -3618,6 +3644,32 @@
       (project "PicoTracer"
         (path "/f79d951e-a1b3-4edf-883f-79f37eda87da"
           (reference "Togle_SW1") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Device:R") (at 181.61 161.29 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
+    (uuid ae3c8574-b6ea-4789-b989-36ec2e1f56d2)
+    (property "Reference" "R16" (at 184.15 160.02 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Value" "3.3kΩ" (at 184.15 162.56 0)
+      (effects (font (size 1.27 1.27)) (justify left))
+    )
+    (property "Footprint" "" (at 179.832 161.29 90)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (property "Datasheet" "~" (at 181.61 161.29 0)
+      (effects (font (size 1.27 1.27)) hide)
+    )
+    (pin "2" (uuid 118197ff-1ec9-4ede-a25e-f7dbdf0bab6f))
+    (pin "1" (uuid c9aa441b-f495-4eb1-a006-b5de0a37cb9c))
+    (instances
+      (project "PicoTracer"
+        (path "/f79d951e-a1b3-4edf-883f-79f37eda87da"
+          (reference "R16") (unit 1)
         )
       )
     )
