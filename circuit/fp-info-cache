@@ -1,4 +1,4 @@
-22816510543584089
+22818227199947391
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86169,6 +86169,13 @@ rotary encoder
 0
 7
 6
+SamacSys_Parts
+LBR127HLD
+LBR-127HLD_1
+Undefined or Miscellaneous
+0
+4
+4
 SamacSys_Parts
 NE555DR
 D (R-PDSO-G8)

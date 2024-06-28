@@ -1,2 +1,127 @@
 (kicad_pcb (version 20221018) (generator pcbnew)
+
+  (general
+    (thickness 1.6)
+  )
+
+  (paper "A4")
+  (layers
+    (0 "F.Cu" signal)
+    (31 "B.Cu" signal)
+    (32 "B.Adhes" user "B.Adhesive")
+    (33 "F.Adhes" user "F.Adhesive")
+    (34 "B.Paste" user)
+    (35 "F.Paste" user)
+    (36 "B.SilkS" user "B.Silkscreen")
+    (37 "F.SilkS" user "F.Silkscreen")
+    (38 "B.Mask" user)
+    (39 "F.Mask" user)
+    (40 "Dwgs.User" user "User.Drawings")
+    (41 "Cmts.User" user "User.Comments")
+    (42 "Eco1.User" user "User.Eco1")
+    (43 "Eco2.User" user "User.Eco2")
+    (44 "Edge.Cuts" user)
+    (45 "Margin" user)
+    (46 "B.CrtYd" user "B.Courtyard")
+    (47 "F.CrtYd" user "F.Courtyard")
+    (48 "B.Fab" user)
+    (49 "F.Fab" user)
+    (50 "User.1" user)
+    (51 "User.2" user)
+    (52 "User.3" user)
+    (53 "User.4" user)
+    (54 "User.5" user)
+    (55 "User.6" user)
+    (56 "User.7" user)
+    (57 "User.8" user)
+    (58 "User.9" user)
+  )
+
+  (setup
+    (pad_to_mask_clearance 0)
+    (pcbplotparams
+      (layerselection 0x00010fc_ffffffff)
+      (plot_on_all_layers_selection 0x0000000_00000000)
+      (disableapertmacros false)
+      (usegerberextensions false)
+      (usegerberattributes true)
+      (usegerberadvancedattributes true)
+      (creategerberjobfile true)
+      (dashed_line_dash_ratio 12.000000)
+      (dashed_line_gap_ratio 3.000000)
+      (svgprecision 4)
+      (plotframeref false)
+      (viasonmask false)
+      (mode 1)
+      (useauxorigin false)
+      (hpglpennumber 1)
+      (hpglpenspeed 20)
+      (hpglpendiameter 15.000000)
+      (dxfpolygonmode true)
+      (dxfimperialunits true)
+      (dxfusepcbnewfont true)
+      (psnegative false)
+      (psa4output false)
+      (plotreference true)
+      (plotvalue true)
+      (plotinvisibletext false)
+      (sketchpadsonfab false)
+      (subtractmaskfromsilk false)
+      (outputformat 1)
+      (mirror false)
+      (drillshape 1)
+      (scaleselection 1)
+      (outputdirectory "")
+    )
+  )
+
+  (net 0 "")
+
+  (gr_arc (start 193.92 47.74) (mid 200.991068 50.668932) (end 203.92 57.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp 08a9aff8-9def-471b-aae2-aff3bacda554))
+  (gr_arc (start 108.92 132.74) (mid 101.848931 129.811068) (end 98.92 122.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp 1b100f04-bdd8-464d-91b0-5b26c91f928b))
+  (gr_arc (start 203.92 122.74) (mid 200.991068 129.811068) (end 193.92 132.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp 4ac0de0d-3f2b-43cf-8f37-978f724b9222))
+  (gr_line (start 203.92 57.74) (end 203.92 122.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp 69b25bc8-3731-4bbd-a089-f413d9f93f3a))
+  (gr_line (start 108.92 47.74) (end 193.92 47.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp 869b20aa-536f-44fb-99dc-1b89b17e2d58))
+  (gr_line (start 98.92 122.74) (end 98.92 57.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp afbc2581-e9a8-4ac8-9d2e-cced109d1567))
+  (gr_arc (start 98.92 57.74) (mid 101.848932 50.668932) (end 108.92 47.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp bcfad594-e9eb-464c-893b-c2631d58fcab))
+  (gr_line (start 193.92 132.74) (end 108.92 132.74)
+    (stroke (width 1) (type solid)) (layer "F.SilkS") (tstamp f83e1e24-1ab6-42e4-9ca8-4d8b7c92d527))
+  (gr_circle (center 151.42 90.24) (end 151.43 90.24)
+    (stroke (width 0.0001) (type solid)) (fill solid) (layer "Dwgs.User") (tstamp 70ce6a25-6392-4249-ab4a-3bf3f13f8f19))
+  (gr_circle (center 151.42 90.24) (end 151.43 90.24)
+    (stroke (width 0.0001) (type solid)) (fill solid) (layer "Dwgs.User") (tstamp d4c89b7d-cd7d-45c8-8a23-24f9c1c5d7d6))
+  (gr_circle (center 107.92 54.74) (end 109.52 54.74)
+    (stroke (width 0.5) (type solid)) (fill none) (layer "B.CrtYd") (tstamp 22739bdd-2b44-4776-a0db-09656288d416))
+  (gr_circle (center 194.92 54.74) (end 196.52 54.74)
+    (stroke (width 0.5) (type solid)) (fill none) (layer "B.CrtYd") (tstamp 25edab21-efc3-4804-946c-92121bda8dce))
+  (gr_circle (center 107.92 125.74) (end 109.52 125.74)
+    (stroke (width 0.5) (type solid)) (fill none) (layer "B.CrtYd") (tstamp 439f35fd-4ea7-429d-927b-2ddff76bef7b))
+  (gr_circle (center 194.92 125.74) (end 196.52 125.74)
+    (stroke (width 0.5) (type solid)) (fill none) (layer "B.CrtYd") (tstamp f3f381d4-406b-4a5c-918f-d500ec7aa300))
+
+  (group "" (id 74923bab-fcf8-4db6-be6e-5bbd7fc665d9)
+    (members
+      08a9aff8-9def-471b-aae2-aff3bacda554
+      1b100f04-bdd8-464d-91b0-5b26c91f928b
+      22739bdd-2b44-4776-a0db-09656288d416
+      25edab21-efc3-4804-946c-92121bda8dce
+      439f35fd-4ea7-429d-927b-2ddff76bef7b
+      4ac0de0d-3f2b-43cf-8f37-978f724b9222
+      69b25bc8-3731-4bbd-a089-f413d9f93f3a
+      70ce6a25-6392-4249-ab4a-3bf3f13f8f19
+      869b20aa-536f-44fb-99dc-1b89b17e2d58
+      afbc2581-e9a8-4ac8-9d2e-cced109d1567
+      bcfad594-e9eb-464c-893b-c2631d58fcab
+      d4c89b7d-cd7d-45c8-8a23-24f9c1c5d7d6
+      f3f381d4-406b-4a5c-918f-d500ec7aa300
+      f83e1e24-1ab6-42e4-9ca8-4d8b7c92d527
+    )
+  )
 )
