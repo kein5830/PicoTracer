@@ -1,4 +1,4 @@
-22818227199947391
+22828578845685248
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -2379,6 +2379,13 @@ SW PUSH SMALL Tactile C&K
 0
 4
 2
+Button_Switch_THT
+SW_Toggle
+
+
+0
+1
+1
 Buzzer_Beeper
 Buzzer_12x9.5RM7.6
 Generic Buzzer, D12mm height 9.5mm with RM7.6mm
@@ -35994,6 +36001,13 @@ Through hole pin header THT 2x20 2.54mm double row
 40
 40
 Connector_PinHeader_2.54mm
+PinHeader_2x20_P2.54mm_Vertical_Raspipico
+Through hole straight pin header, 2x20, 2.54mm pitch, double rows
+Through hole pin header THT 2x20 2.54mm double row
+0
+40
+40
+Connector_PinHeader_2.54mm
 PinHeader_2x20_P2.54mm_Vertical_SMD
 surface-mounted straight pin header, 2x20, 2.54mm pitch, double rows
 Surface mounted pin header SMD 2x20 2.54mm double row
@@ -42694,6 +42708,13 @@ Through hole angled socket strip THT 2x20 2.54mm double row
 40
 Connector_PinSocket_2.54mm
 PinSocket_2x20_P2.54mm_Vertical
+Through hole straight socket strip, 2x20, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated
+Through hole socket strip THT 2x20 2.54mm double row
+0
+40
+40
+Connector_PinSocket_2.54mm
+PinSocket_2x20_P2.54mm_Vertical_Raspipico
 Through hole straight socket strip, 2x20, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated
 Through hole socket strip THT 2x20 2.54mm double row
 0
@@ -86170,6 +86191,20 @@ rotary encoder
 7
 6
 SamacSys_Parts
+2MS1T1B4VS2QES
+2MS1T1B4VS2QES-1
+Integrated Circuit
+0
+5
+5
+SamacSys_Parts
+DIP781W56P254L950H533Q8N
+8-Lead Plastic Dual In-Line (P) - 300 mil Body [PDIP]
+Integrated Circuit
+0
+8
+8
+SamacSys_Parts
 LBR127HLD
 LBR-127HLD_1
 Undefined or Miscellaneous
@@ -86183,6 +86218,13 @@ Integrated Circuit
 0
 8
 8
+SamacSys_Parts
+PICO
+PICO
+Connector
+0
+53
+53
 SamacSys_Parts
 TVDP01G73BB
 TVDP01-G73BB-1
