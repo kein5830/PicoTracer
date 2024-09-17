@@ -45,7 +45,7 @@
 			(layerselection 0x00010fc_ffffffff)
 			(plot_on_all_layers_selection 0x0000000_00000000)
 			(disableapertmacros no)
-			(usegerberextensions no)
+			(usegerberextensions yes)
 			(usegerberattributes yes)
 			(usegerberadvancedattributes yes)
 			(creategerberjobfile yes)
@@ -74,9 +74,9 @@
 			(subtractmaskfromsilk no)
 			(outputformat 1)
 			(mirror no)
-			(drillshape 1)
+			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "")
+			(outputdirectory "./")
 		)
 	)
 	(net 0 "")
@@ -2415,7 +2415,7 @@
 		(descr "2MS1T1B4VS2QES-1")
 		(tags "Integrated Circuit")
 		(property "Reference" "Togle_SW1"
-			(at 0 2.54 0)
+			(at 0.18 9.44 0)
 			(layer "F.SilkS")
 			(uuid "1f9630c0-0b32-4d5d-b80b-9ee97991a1be")
 			(effects
@@ -2618,7 +2618,7 @@
 			(uuid "d5137a62-0db0-441e-8ece-dc5a0f396f2f")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 0)
+			(at 0.18 9.44 0)
 			(layer "F.Fab")
 			(uuid "20210eb9-b26d-41ee-94b2-077e235ff62b")
 			(effects
@@ -2696,7 +2696,7 @@
 		(descr "JST VH series connector, B2P-VH (http://www.jst-mfg.com/product/pdf/eng/eVH.pdf), generated with kicad-footprint-generator")
 		(tags "connector JST VH vertical")
 		(property "Reference" "J9"
-			(at 1.98 -4.9 90)
+			(at -0.9 -4.74 90)
 			(layer "F.SilkS")
 			(uuid "54203274-2907-41e3-a6d0-ec5540ef931e")
 			(effects
@@ -4610,7 +4610,7 @@
 		(descr "tactile push button, 6x6mm e.g. PHAP33xx series, height=4.3mm")
 		(tags "tact sw push 6mm")
 		(property "Reference" "SW1"
-			(at 3.25 -2 0)
+			(at 3.28 -1.79 0)
 			(layer "F.SilkS")
 			(uuid "380be283-d537-412f-bcb9-b6457d9390d0")
 			(effects
@@ -7301,7 +7301,7 @@
 		(descr "Pololu Breakout 16-pin 15.2x20.3mm 0.6x0.8\\")
 		(tags "Pololu Breakout")
 		(property "Reference" "Left1"
-			(at 6.35 -2.54 90)
+			(at 9.7 -2.13 90)
 			(layer "F.SilkS")
 			(uuid "07b49531-0651-404c-8952-526291cdfe0a")
 			(effects
@@ -8031,7 +8031,7 @@
 		(descr "2MS1T1B4VS2QES-1")
 		(tags "Integrated Circuit")
 		(property "Reference" "Togle_SW2"
-			(at 0 2.54 0)
+			(at 0.02 9.26 0)
 			(layer "F.SilkS")
 			(uuid "63af00b2-dcad-4617-91aa-24c31de00e3a")
 			(effects
@@ -8234,7 +8234,7 @@
 			(uuid "982c8fd9-db42-4a70-a409-84cc9b9b6c11")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 0)
+			(at 0.02 9.26 0)
 			(layer "F.Fab")
 			(uuid "f4f90a51-73eb-4583-9719-64608f853896")
 			(effects
@@ -8893,8 +8893,8 @@
 		)
 	)
 	(gr_rect
-		(start 109.4232 60.0837)
-		(end 134.7724 85.5091)
+		(start 109.4232 60.9537)
+		(end 134.7724 84.4491)
 		(stroke
 			(width 0.15)
 			(type default)
@@ -9052,72 +9052,6 @@
 		)
 		(layer "Edge.Cuts")
 		(uuid "f83e1e24-1ab6-42e4-9ca8-4d8b7c92d527")
-	)
-	(dimension
-		(type aligned)
-		(layer "B.Cu")
-		(uuid "5dcf8841-e54e-4d50-aa4a-0411ed33442a")
-		(pts
-			(xy 69 63) (xy 94.5 63)
-		)
-		(height -1.5)
-		(gr_text "25.5000 mm"
-			(at 81.75 59.7 0)
-			(layer "B.Cu")
-			(uuid "5dcf8841-e54e-4d50-aa4a-0411ed33442a")
-			(effects
-				(font
-					(size 1.5 1.5)
-					(thickness 0.3)
-				)
-			)
-		)
-		(format
-			(prefix "")
-			(suffix "")
-			(units 3)
-			(units_format 1)
-			(precision 4)
-		)
-		(style
-			(thickness 0.2)
-			(arrow_length 1.27)
-			(text_position_mode 0)
-			(extension_height 0.58642)
-			(extension_offset 0.5) keep_text_aligned)
-	)
-	(dimension
-		(type aligned)
-		(layer "B.Cu")
-		(uuid "ee426720-2f38-4ada-9fa6-01db4c3bcf22")
-		(pts
-			(xy 70.5 87) (xy 70.5 61.5)
-		)
-		(height -1.5)
-		(gr_text "25.5000 mm"
-			(at 67.2 74.25 90)
-			(layer "B.Cu")
-			(uuid "ee426720-2f38-4ada-9fa6-01db4c3bcf22")
-			(effects
-				(font
-					(size 1.5 1.5)
-					(thickness 0.3)
-				)
-			)
-		)
-		(format
-			(prefix "")
-			(suffix "")
-			(units 3)
-			(units_format 1)
-			(precision 4)
-		)
-		(style
-			(thickness 0.2)
-			(arrow_length 1.27)
-			(text_position_mode 0)
-			(extension_height 0.58642)
-			(extension_offset 0.5) keep_text_aligned)
 	)
 	(segment
 		(start 160 81.06)
