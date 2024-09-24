@@ -2,8 +2,8 @@
 #include "RPi_Pico_TimerInterrupt.h"
 #include "hardware/pwm.h"
 //メニュー選択スイッチピン up:前側　down:後ろ側
-#define upswitch 17
-#define downswitch 16
+#define upswitch 15
+#define downswitch 14
 
 //AD変換ピン
 #define SELPIN1 9    //前後どっちか確認する
@@ -12,6 +12,7 @@
 #define DATAIN 12    //MISO
 #define SPICLOCK 10  //Clock
 #define GOALSENSOR 26
+#define Curve_Sensor 28
 #define ch0 0
 #define ch1 1
 
