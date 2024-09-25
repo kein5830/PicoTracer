@@ -154,8 +154,9 @@ void setup() {
 
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
+  // ブザー鳴らす関数追加
+  tone(4,78,500);
   //モード選択待機
-  
 }
 
 
