@@ -25,6 +25,8 @@
 #define CWCCW_L 20
 #define ENABLE_L 22
 
+//ブザーピン
+#define BUZZER 4
 //タイマー関連
 RPI_PICO_Timer ITimer0(0);
 // Select the timer you're using, from ITimer0(0)-ITimer3(3)
@@ -122,6 +124,9 @@ void setup() {
   pinMode(CLOCK_R, OUTPUT);   //パルス出力ピン
   pinMode(CWCCW_R, OUTPUT);   //モータ回転方向出力ピン
   pinMode(ENABLE_R, OUTPUT);  //モーター電源ピン
+
+  //ブザー
+  pinMode(BUZZER, OUTPUT);  
   //回転方向制御
   digitalWrite(CWCCW_L, HIGH);
   digitalWrite(CWCCW_R, LOW);  //前進
@@ -136,8 +141,6 @@ void setup() {
   gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);
   gpio_set_function(CLOCK_L, GPIO_FUNC_PWM);
 
-  
-
  //周期0.02s
  //Slice1＝Reft Slice2=Left
   pwm_set_wrap(pwm_slice1, 1100);
@@ -149,13 +152,13 @@ void setup() {
   pwm_set_clkdiv(pwm_slice1, 100.0);
   pwm_set_clkdiv(pwm_slice2, 100.0);
 
-
-
-
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
-  // ブザー鳴らす関数追加
-  tone(4,78,500);
+  
+  // ブザー鳴らす
+  digitalWrite(BUZZER, HIGH);
+  delay(500);
+  digitalWrite(BUZZER, LOW);
   //モード選択待機
 }
 
