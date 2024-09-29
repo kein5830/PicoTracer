@@ -1,6 +1,16 @@
 //タイマーライブラリ
 #include "RPi_Pico_TimerInterrupt.h"
 #include "hardware/pwm.h"
+
+//SSD1306ディスプレイ関連ライブラリ
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h> // 別途「Adafruit BusIO」ライブラリ必要
+
+// OLED設定
+#define SCREEN_WIDTH 128  // OLED 幅指定
+#define SCREEN_HEIGHT 64  // OLED 高さ指定（高さ32のものを使用する場合は32）
+#define OLED_RESET -1     // リセット端子（未使用-1）
+
 //メニュー選択スイッチピン up:前側　down:後ろ側
 #define upswitch 15
 #define downswitch 14
@@ -27,6 +37,10 @@
 
 //ブザーピン
 #define BUZZER 4
+
+// I2Cに接続されたSSD1306用「display」の宣言
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 //タイマー関連
 RPI_PICO_Timer ITimer0(0);
 // Select the timer you're using, from ITimer0(0)-ITimer3(3)
@@ -154,6 +168,36 @@ void setup() {
 
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
   // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
+  /*
+  ディスプレイ設定　初期表示
+  */
+  //SSD1306本体初期化  
+  Wire.setSDA(16);  // I2C0 SDA 端子番号設定
+  Wire.setSCL(17);  // I2C0 SCL 端子番号設定
+  Wire.begin();     // I2C通信開始設定(SDA,SDL)
+  // OLED初期設定
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306:0 allocation failed"));
+    for (;;); // エラーなら無限ループ
+  }
+  // OLED表示設定
+  display.setTextColor(SSD1306_WHITE);  // 文字色
+  
+  //表示
+  display.clearDisplay();     // 表示クリア
+  Serial.println("動作");
+  // タイトル表示
+  display.setTextSize(2);     // 文字サイズ（1）
+  display.setCursor(4, 0);    // 表示開始位置左上角（X,Y）
+  display.println("PicoTracer");    // 表示内容
+
+  //図形表示  
+  display.drawLine(0, 20, 128, 20, WHITE);   // 線（始点終点指定）
+  display.drawFastVLine(64, 22, 17, WHITE);  // 線（指定座標から垂線）
+  display.drawFastHLine(0, 40, 128, WHITE);  // 線（指定座標から平行線）
+  display.display();  // 表示実行
+
+  delay(100);
   
   // ブザー鳴らす
   digitalWrite(BUZZER, HIGH);
