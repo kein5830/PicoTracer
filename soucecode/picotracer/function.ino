@@ -101,8 +101,8 @@ void Oled_run(float volt){
   display.drawFastHLine(0, 40, 128, WHITE);  // 線（指定座標から平行線）
   
   //電圧値
-  display.setTextSize(1);     // 文字サイズ（1）
-  display.setCursor(4, 2);    // 表示開始位置左上角（X,Y）
+  display.setTextSize(2);     // 文字サイズ（1）
+  display.setCursor(4, 22);    // 表示開始位置左上角（X,Y）
   display.println(volt);    // 表示内容
 
   display.display();  // 表示実行

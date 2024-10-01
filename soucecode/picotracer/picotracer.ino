@@ -206,6 +206,8 @@ void setup() {
 void loop() {
   // バッテリー電圧更新 12bit 4096通り
   voltage   = analogRead(VOLT) * 3.3 / 4096;
+  Serial.print("raw :");
+  Serial.print(analogRead(VOLT));
   Serial.print("Voltage :");
   Serial.println(voltage);
   Oled_run(voltage);
