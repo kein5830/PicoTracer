@@ -25,7 +25,8 @@
 #define Curve_Sensor 28
 #define ch0 0
 #define ch1 1
-
+// 電圧測定
+#define VOLT 27
 //モータードライバピン
 #define CLOCK_R 8
 #define CWCCW_R 6
@@ -45,6 +46,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 RPI_PICO_Timer ITimer0(0);
 // Select the timer you're using, from ITimer0(0)-ITimer3(3)
 // Init RPI_PICO_Timer
+
+// 変数宣言
 //パルス生成用変数
 unsigned int toggle0 = 0;
 unsigned int toggle1 = 0;
@@ -96,6 +99,8 @@ float igain = 0.0004;
 //goalセンサーカウント
 static int count = 0, cross = 0;
 static bool tmp = 0, tmpc = 0;
+// 電圧値監視
+float voltage = 0.0;
 
 //プロトタイプ宣言
 int read_adc(int select, int channel);          //ADコンバータ
@@ -111,6 +116,8 @@ int pulseHz(int pulsefreq);  //パルス周波数⇨パルス幅変換
 //PWMスライス生成
 uint pwm_slice1 = pwm_gpio_to_slice_num(CLOCK_R);
 uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
+// ディスプレイ表示
+void Oled_run(float volt);
 
 void setup() {
   //マイコン電源確認用LEDの点灯
@@ -141,6 +148,7 @@ void setup() {
 
   //ブザー
   pinMode(BUZZER, OUTPUT);  
+
   //回転方向制御
   digitalWrite(CWCCW_L, HIGH);
   digitalWrite(CWCCW_R, LOW);  //前進
@@ -183,20 +191,8 @@ void setup() {
   // OLED表示設定
   display.setTextColor(SSD1306_WHITE);  // 文字色
   
-  //表示
-  display.clearDisplay();     // 表示クリア
-  Serial.println("動作");
-  // タイトル表示
-  display.setTextSize(2);     // 文字サイズ（1）
-  display.setCursor(4, 0);    // 表示開始位置左上角（X,Y）
-  display.println("PicoTracer");    // 表示内容
-
-  //図形表示  
-  display.drawLine(0, 20, 128, 20, WHITE);   // 線（始点終点指定）
-  display.drawFastVLine(64, 22, 17, WHITE);  // 線（指定座標から垂線）
-  display.drawFastHLine(0, 40, 128, WHITE);  // 線（指定座標から平行線）
-  display.display();  // 表示実行
-
+  // ディスプレイ表示
+  Oled_run(0.0);
   delay(100);
   
   // ブザー鳴らす
@@ -208,6 +204,12 @@ void setup() {
 
 
 void loop() {
+  // バッテリー電圧更新 12bit 4096通り
+  voltage   = analogRead(VOLT) * 3.3 / 4096;
+  Serial.print("Voltage :");
+  Serial.println(voltage);
+  Oled_run(voltage);
+  
   //モード選択
   static bool a = 0;
   sw1 = digitalRead(upswitch);
@@ -236,7 +238,6 @@ void loop() {
   
 
   if (Run == 1) {
-    //実行時に一回だけLED点滅
     if(a == 1){
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
@@ -249,10 +250,12 @@ void loop() {
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
     digitalWrite(LED_BUILTIN, HIGH);
-    a = 0;
+
     //モーター電源オン
     digitalWrite(ENABLE_L, LOW);
     digitalWrite(ENABLE_R, LOW);
+    //実行時に一回だけLED点滅　値リセット
+    a = 0;
     }
   
     switch (Mode) {

@@ -85,6 +85,28 @@ void Reset(){
   Serial.print("Reset");
 }
 
+// OLED表示
+void Oled_run(float volt){
+  //表示
+  display.clearDisplay();     // 表示クリア
+  Serial.println("動作");
+  // タイトル表示
+  display.setTextSize(2);     // 文字サイズ（1）
+  display.setCursor(4, 0);    // 表示開始位置左上角（X,Y）
+  display.println("PicoTracer");    // 表示内容
+
+  //図形表示  
+  display.drawLine(0, 20, 128, 20, WHITE);   // 線（始点終点指定）
+  display.drawFastVLine(64, 22, 17, WHITE);  // 線（指定座標から垂線）
+  display.drawFastHLine(0, 40, 128, WHITE);  // 線（指定座標から平行線）
+  
+  //電圧値
+  display.setTextSize(1);     // 文字サイズ（1）
+  display.setCursor(4, 2);    // 表示開始位置左上角（X,Y）
+  display.println(volt);    // 表示内容
+
+  display.display();  // 表示実行
+}
 
 //meinrun///////////////////////////////////////////////////////////////////////
 //500：安定
