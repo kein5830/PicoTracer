@@ -68,6 +68,7 @@ int sensorL = 0;
 int sensorR = 0;
 int sensorRR = 0;
 int sensorGoal = 0;
+int Curve = 0;
 //ステップ数計測変数
 unsigned int Step = 0;
 float distance = 0.0;
@@ -192,7 +193,7 @@ void setup() {
   display.setTextColor(SSD1306_WHITE);  // 文字色
   
   // ディスプレイ表示
-  Oled_run(0.0);
+  Oled_run(0.0,0);
   delay(100);
   
   // ブザー鳴らす
@@ -211,7 +212,7 @@ void loop() {
   Serial.print(analogRead(VOLT));
   Serial.print("Voltage :");
   Serial.println(voltage);
-  Oled_run(voltage);
+  Oled_run(voltage,Mode);
   
   //モード選択
   static bool a = 0;
@@ -219,6 +220,10 @@ void loop() {
   sw2 = digitalRead(downswitch);
   if (sw1 == 1) {
     Mode++;
+    //Mode：９まで    
+    if(Mode==10){
+      Mode=0;
+      }
     digitalWrite(LED_BUILTIN, LOW);
     a = 0;
     delay(300);

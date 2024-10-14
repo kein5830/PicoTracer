@@ -86,7 +86,7 @@ void Reset(){
 }
 
 // OLED表示
-void Oled_run(float volt){
+void Oled_run(float volt,int runmode){
   //表示
   display.clearDisplay();     // 表示クリア
   Serial.println("動作");
@@ -104,6 +104,16 @@ void Oled_run(float volt){
   display.setTextSize(2);     // 文字サイズ（1）
   display.setCursor(4, 22);    // 表示開始位置左上角（X,Y）
   display.println(volt);    // 表示内容
+
+  // No.
+  display.setTextSize(2);     // 文字サイズ（1）
+  display.setCursor(69, 22);    // 表示開始位置左上角（X,Y）
+  display.println("No.");    // 表示内容
+  
+  //走行モード
+  display.setTextSize(2);     // 文字サイズ（1）
+  display.setCursor(110, 22);    // 表示開始位置左上角（X,Y）
+  display.println(runmode);    // 表示内容
 
   display.display();  // 表示実行
 }
@@ -747,28 +757,36 @@ void Scene4() {
   }
   }
 }
-//電圧テスト
+//テスト
 void Scene5() {
-  while(1){
-  //電圧
-  //1.0k 5.1k
-  sensorGoal = analogRead(27);
-  //速度
-  //現在の速度
-  static float Speed = 0.0;
+  boolean output = LOW;
 
-  Speed=Speed+0.01;
-  if(Speed>1500){
-    Speed=1500;
-  }
-  Serial.println(sensorGoal);
-  if (sw1 == 1) {
-    Run = 0,Mode = 0,Speed=0.0;
-    digitalWrite(ENABLE_L, HIGH);
-    digitalWrite(ENABLE_R, HIGH);
-    Reset();
-    break;
-  }
-  
+  while(1){
+//  モーターテストコード 
+//  digitalWrite(CLOCK_L,output);
+//  digitalWrite(CLOCK_R,output);
+//  output = !output;
+//  delay(1);
+//  Serial.println(output);
+
+//センサーテストコード
+  sensorLL = read_adc(ch0, SELPIN1);
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  sensorL = read_adc(ch1, SELPIN1);
+  Serial.print(sensorL, DEC);
+  Serial.print(" ");
+  sensorR = read_adc(ch0, SELPIN2);
+  Serial.print(sensorR, DEC);
+  Serial.print(" ");
+  sensorRR = read_adc(ch1, SELPIN2);
+  Serial.print(sensorRR, DEC);
+  Serial.print(" ");
+  sensorGoal = analogRead(GOALSENSOR);
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
+  Serial.println(" ");
   }
 }
