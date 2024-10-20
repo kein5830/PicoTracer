@@ -18,8 +18,8 @@
 //AD変換ピン
 #define SELPIN1 9    //前後どっちか確認する
 #define SELPIN2 13   //前後どっちか確認する
-#define DATAOUT 11   //MOSI
-#define DATAIN 12    //MISO
+#define DATAOUT 12   //mcp3002:DOUT---pico:GP12(SPI1 RX)
+#define DATAIN 11    //mcp3002:DIN---pico:GP11(SPI1 TX)
 #define SPICLOCK 10  //Clock
 #define GOALSENSOR 26
 #define Curve_Sensor 28
@@ -154,11 +154,12 @@ void setup() {
   digitalWrite(CWCCW_L, HIGH);
   digitalWrite(CWCCW_R, LOW);  //前進
   //モーター電源制御
-  digitalWrite(ENABLE_L, LOW);
-  digitalWrite(ENABLE_R, LOW);
+  digitalWrite(ENABLE_L, HIGH);
+  digitalWrite(ENABLE_R, HIGH);
 
   //シリアル通信用
   Serial.begin(115200);
+  //raspi picoのanalogreadの精度を12bitに切り替え　↓以下を定義することで切り替え標準は10bit
   analogReadResolution(12);
   //PWM速度変化https://rikei-tawamure.com/entry/2021/02/08/213335
   gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);

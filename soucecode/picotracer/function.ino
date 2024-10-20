@@ -770,20 +770,20 @@ void Scene5() {
 //  Serial.println(output);
 
 //センサーテストコード
-  sensorLL = read_adc(ch0, SELPIN1);
-  Serial.print(sensorLL, DEC);
-  Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  sensorL = read_adc(ch0, SELPIN2);//sensor l
+  Serial.print(sensorL, DEC);
+  Serial.print(" ");
+  sensorR = read_adc(ch1, SELPIN1);//sensor r
+  Serial.print(sensorR, DEC);
+  Serial.print(" ");
+  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  Serial.print(sensorRR, DEC);
   Serial.print(" ");
   Curve = analogRead(Curve_Sensor);
   Serial.print(Curve, DEC);
