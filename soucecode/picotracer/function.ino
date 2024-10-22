@@ -119,14 +119,14 @@ void Oled_run(float volt,int runmode){
 }
 
 //meinrun///////////////////////////////////////////////////////////////////////
-//500：安定
+//100：安定
 //固定速度走行 PI制御
 void Scene0() {
   while(1){
 
   if(c == 0){
     //基準速度
-    SP = 500;
+    SP = 200;
     //Pゲイン
     pgain = 0.4;
     //Dゲイン
@@ -138,21 +138,24 @@ void Scene0() {
   }
 
 
-  sensorLL = read_adc(ch0, SELPIN1);
-  // Serial.print(sensorLL, DEC);
-  // Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
-  // Serial.print(sensorL, DEC);
-  // Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
-  // Serial.print(sensorR, DEC);
-  // Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
-  // Serial.print(sensorRR, DEC);
-  // Serial.print(" ");
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
+  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  sensorL = read_adc(ch0, SELPIN2);//sensor l
+  Serial.print(sensorL, DEC);
+  Serial.print(" ");
+  sensorR = read_adc(ch1, SELPIN1);//sensor r
+  Serial.print(sensorR, DEC);
+  Serial.print(" ");
+  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  Serial.print(sensorRR, DEC);
+  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  // Serial.print(sensorGoal, DEC);
-  // Serial.println(" ");
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if(tmp == 0 && sensorGoal < 300) {  //速度によって調整
@@ -265,48 +268,49 @@ void Scene0() {
   }
 }
 
-//感度が強すぎるのかわからんがちょっとでもカーブするとすぐに抜ける、直線も振動しまくる
+//変更中
 //P制御走行
 void Scene1() {
   while(1){
-  
-  if(c == 0){
+    if(c == 0){
     //基準速度
-     SP = 600;
+     SP = 500;
     //Pゲイン
-    pgain = 0.55;
+    pgain = 0.45;
     // 1回しか入らないようcを1にする
     c = 1;
  }
-  sensorLL = read_adc(ch0, SELPIN1);
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
+  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
   Serial.print(sensorLL, DEC);
   Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN2);//sensor l
   Serial.print(sensorL, DEC);
   Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
+  sensorR = read_adc(ch1, SELPIN1);//sensor r
   Serial.print(sensorR, DEC);
   Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
   Serial.print(sensorRR, DEC);
   Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
   Serial.print(" ");
-
   //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
+  if (tmp == 0 && sensorGoal < 100){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
     count++;
     tmp = 1;
     count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
+//    cross = cross - cross;
   }
   if (sensorGoal > 900) {
     tmp = 0;
   }
 
   //ラインクロスカウンタ
-  if (tmpc == 0 && sensorLL < 300 && sensorL < 300 && sensorR < 300) {  //速度によって調整
+  if (tmpc == 0 && sensorLL < 200 && sensorL < 200 && sensorR < 200 && sensorL < 200) {  //速度によって調整
     cross++;
     tmpc = 1;
   }
@@ -315,25 +319,25 @@ void Scene1() {
   }
 
   //ゴール後少し進んで停止
-  if (count == 2) {  //一時的
-    if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
-      Step = 0;
-    }
-    b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
-    
-  }
-  if (distance > 100) {  //停止位置は試走会で調整
-      ITimer0.stopTimer();
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
-      Reset();
-      break;
-    }
+//  if (count == 2) {  //一時的
+//    if (b == 0) {
+//      //タイマースタート処理
+//      ITimer0.stopTimer();
+//      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
+//      Step = 0;
+//    }
+//    b=1;
+//    //  Serial.print(" tmp=");
+//    //  Serial.println(tmp);
+//    
+//  }
+//  if (distance > 100) {  //停止位置は試走会で調整
+//      ITimer0.stopTimer();
+//      digitalWrite(ENABLE_L, HIGH);
+//      digitalWrite(ENABLE_R, HIGH);
+//      Reset();
+//      break;
+//    }
 
   //今回の差分
   diff = sensorL - sensorR - bias;  //biasは試走会で調整
@@ -347,22 +351,13 @@ void Scene1() {
 
   //前回の差分を保存
   beforediff = diff;
-  //速度設定 Slice1＝Reft Slice2=Left
-  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-
- 
-  //PWMスタート
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
 
   //最大値補正
-  if (inputL > SP) {
-    inputL = SP;
+  if (inputL > 600) {
+    inputL = 600;
   }
-  if (inputR > SP) {
-    inputR = SP;
+  if (inputR > 600) {
+    inputR = 600;
   }
   //最小値補正
   if (inputL < 0) {
@@ -377,6 +372,15 @@ void Scene1() {
     inputL = SP;
     inputR = SP;
   }
+  
+//速度設定 Slice1＝Reft Slice2=Left
+  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
+  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
+
+ 
+  //PWMスタート
+  pwm_set_enabled(pwm_slice1, true);
+  pwm_set_enabled(pwm_slice2, true);
 
 
   Serial.print(" P:");
@@ -422,21 +426,24 @@ void Scene2() {
     c = 1;
   }
 
-  sensorLL = read_adc(ch0, SELPIN1);
-  // Serial.print(sensorLL, DEC);
-  // Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
-  // Serial.print(sensorL, DEC);
-  // Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
-  // Serial.print(sensorR, DEC);
-  // Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
-  // Serial.print(sensorRR, DEC);
-  // Serial.print(" ");
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
+  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  sensorL = read_adc(ch0, SELPIN2);//sensor l
+  Serial.print(sensorL, DEC);
+  Serial.print(" ");
+  sensorR = read_adc(ch1, SELPIN1);//sensor r
+  Serial.print(sensorR, DEC);
+  Serial.print(" ");
+  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  Serial.print(sensorRR, DEC);
+  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  // Serial.print(sensorGoal, DEC);
-  // Serial.println(" ");
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
@@ -600,21 +607,24 @@ void Scene3() {
   }
 
 
-  sensorLL = read_adc(ch0, SELPIN1);
-  //     Serial.print(sensorLL,DEC);
-  //     Serial.print(" ");
-  sensorL = read_adc(ch1, SELPIN1);
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
+  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  sensorL = read_adc(ch0, SELPIN2);//sensor l
   Serial.print(sensorL, DEC);
   Serial.print(" ");
-  sensorR = read_adc(ch0, SELPIN2);
+  sensorR = read_adc(ch1, SELPIN1);//sensor r
   Serial.print(sensorR, DEC);
   Serial.print(" ");
-  sensorRR = read_adc(ch1, SELPIN2);
-  //     Serial.print(sensorRR,DEC);
-  //     Serial.print(" ");
+  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  Serial.print(sensorRR, DEC);
+  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  //     Serial.print(sensorGoal,DEC);
-  //     Serial.print(" ");
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 100) {  //速度によって調整
@@ -770,8 +780,8 @@ void Scene5() {
 //  Serial.println(output);
 
 //センサーテストコード
-  sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
+  Curve = analogRead(Curve_Sensor);
+  Serial.print(Curve, DEC);
   Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
   Serial.print(sensorLL, DEC);
@@ -785,8 +795,9 @@ void Scene5() {
   sensorRR = read_adc(ch0, SELPIN1);//sensor rr
   Serial.print(sensorRR, DEC);
   Serial.print(" ");
-  Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.println(" ");
+  sensorGoal = analogRead(GOALSENSOR);
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  
   }
 }

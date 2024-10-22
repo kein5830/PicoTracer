@@ -21,8 +21,8 @@
 #define DATAOUT 12   //mcp3002:DOUT---pico:GP12(SPI1 RX)
 #define DATAIN 11    //mcp3002:DIN---pico:GP11(SPI1 TX)
 #define SPICLOCK 10  //Clock
-#define GOALSENSOR 26
-#define Curve_Sensor 28
+#define GOALSENSOR 28
+#define Curve_Sensor 26
 #define ch0 0
 #define ch1 1
 // 電圧測定
@@ -160,7 +160,7 @@ void setup() {
   //シリアル通信用
   Serial.begin(115200);
   //raspi picoのanalogreadの精度を12bitに切り替え　↓以下を定義することで切り替え標準は10bit
-  analogReadResolution(12);
+//  analogReadResolution(12);
   //PWM速度変化https://rikei-tawamure.com/entry/2021/02/08/213335
   gpio_set_function(CLOCK_R, GPIO_FUNC_PWM);
   gpio_set_function(CLOCK_L, GPIO_FUNC_PWM);
@@ -207,7 +207,7 @@ void setup() {
 
 void loop() {
   // バッテリー電圧更新 12bit 4096通り
-  voltage = ((analogRead(VOLT) * 3.3 / 4096)*6.1) + 0.2;
+  voltage = ((analogRead(VOLT) * 3.3 / 1024)*6.1);
   
   Serial.print("raw :");
   Serial.print(analogRead(VOLT));
