@@ -9053,6 +9053,54 @@
 		(layer "Edge.Cuts")
 		(uuid "f83e1e24-1ab6-42e4-9ca8-4d8b7c92d527")
 	)
+	(gr_text "SCL"
+		(at 142.24 63.5 0)
+		(layer "Edge.Cuts")
+		(uuid "317123b7-5a5f-4428-b748-7028d465db2e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "SDA"
+		(at 127 63.5 0)
+		(layer "Edge.Cuts")
+		(uuid "83be2ab8-415c-4cbe-b466-00101eb3eb3f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "SDA"
+		(at 142.24 60.96 0)
+		(layer "Edge.Cuts")
+		(uuid "c16eeaa6-8729-4558-aafc-03f04e5fe00a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "SCL"
+		(at 121.92 63.5 0)
+		(layer "Edge.Cuts")
+		(uuid "cba4419a-5a92-4821-b2f4-986b9c9cf218")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(segment
 		(start 160 81.06)
 		(end 162.54 81.06)

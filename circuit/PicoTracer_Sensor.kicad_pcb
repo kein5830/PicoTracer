@@ -76,7 +76,7 @@
 			(mirror no)
 			(drillshape 0)
 			(scaleselection 1)
-			(outputdirectory "./")
+			(outputdirectory "PicoTracer_Sensor_Garber/")
 		)
 	)
 	(net 0 "")
@@ -101,7 +101,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U13"
-			(at -1.825 1.27 90)
+			(at -1.825 6.52 90)
 			(layer "F.SilkS")
 			(uuid "4f867d00-6ce8-4f95-90f6-aaa8df35f24c")
 			(effects
@@ -417,7 +417,7 @@
 			(uuid "187e31c8-28e7-4c49-ae9e-077018c0e9f6")
 		)
 		(fp_text user "${REFERENCE}"
-			(at -1.825 1.27 90)
+			(at -1.825 6.52 90)
 			(layer "F.Fab")
 			(uuid "18756a4a-a8cd-4e6d-b224-9b9078c7cc99")
 			(effects
@@ -1590,7 +1590,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U10"
-			(at -1.825 1.27 90)
+			(at -1.825 6.47 90)
 			(layer "F.SilkS")
 			(uuid "2fe4e4ca-4a7d-482c-b743-285762eb3f0d")
 			(effects
@@ -1906,7 +1906,7 @@
 			(uuid "3316edf9-0a1d-44cf-8638-3d6f5c1c2db2")
 		)
 		(fp_text user "${REFERENCE}"
-			(at -1.825 1.27 90)
+			(at -1.825 6.47 90)
 			(layer "F.Fab")
 			(uuid "f442d578-fdd8-4e2b-8bcb-1a11e993e6e2")
 			(effects
@@ -1979,7 +1979,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U11"
-			(at -1.825 1.27 90)
+			(at -1.825 6.6 90)
 			(layer "F.SilkS")
 			(uuid "9603b51d-fe1b-49a7-a952-36293093ec31")
 			(effects
@@ -2295,7 +2295,7 @@
 			(uuid "07c10647-0d68-44bd-9349-870bf93685df")
 		)
 		(fp_text user "${REFERENCE}"
-			(at -1.825 1.27 90)
+			(at -1.825 6.6 90)
 			(layer "F.Fab")
 			(uuid "07509dec-5a55-4ef6-96a5-fc7e7036b3b3")
 			(effects
@@ -4018,7 +4018,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U12"
-			(at -1.825 1.27 90)
+			(at -1.825 6.4 90)
 			(layer "F.SilkS")
 			(uuid "b24aea9b-d349-4cb5-97d4-9dbc29dc57b8")
 			(effects
@@ -4334,7 +4334,7 @@
 			(uuid "5e6216cf-6caf-4e0a-b0e9-e39adbc90335")
 		)
 		(fp_text user "${REFERENCE}"
-			(at -1.825 1.27 90)
+			(at -1.825 6.4 90)
 			(layer "F.Fab")
 			(uuid "39d128fe-ec89-45a0-ba5a-0752b48f92c3")
 			(effects
@@ -4682,7 +4682,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U1"
-			(at -1.825 1.27 90)
+			(at -1.825 6.28 90)
 			(layer "F.SilkS")
 			(uuid "acfbda46-ed25-4c08-8562-8ae5817f8d1d")
 			(effects
@@ -5071,7 +5071,7 @@
 		(descr "LBR-127HLD_1")
 		(tags "Undefined or Miscellaneous")
 		(property "Reference" "U14"
-			(at -1.825 1.27 90)
+			(at -2.54 6.74 90)
 			(layer "F.SilkS")
 			(uuid "c86fabf1-841a-4449-9506-abc57ef7118d")
 			(effects
@@ -5387,7 +5387,7 @@
 			(uuid "f562a345-19bd-40e3-9adf-4d8a509c0780")
 		)
 		(fp_text user "${REFERENCE}"
-			(at -1.825 1.27 90)
+			(at -2.54 6.74 90)
 			(layer "F.Fab")
 			(uuid "c92db5a4-d226-4c37-81e9-cc0cf9d71dd1")
 			(effects
