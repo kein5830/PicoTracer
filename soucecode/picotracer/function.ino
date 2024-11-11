@@ -921,32 +921,58 @@ void Scene4() {
 //テスト
 void Scene5() {
   boolean output = LOW;
-  int count = 1;
+  int count = 0;
+  int step = 0;
+  int ct=0,mode = 0; 
+  //int deg[45] = {49,48,}
   while(1){
   //旋回
   digitalWrite(CWCCW_L, HIGH);
   digitalWrite(CWCCW_R, HIGH); 
   //  モーターテストコード
- digitalWrite(CLOCK_L,output);
- digitalWrite(CLOCK_R,output);
- output = !output;
- count++;
- delay(2);
- Serial.print("count: ");
- Serial.print(count);
- Serial.print("output: ");
- Serial.println(output);
+//  output = !output;
+//  count++;
+//  delay(2);
+//  Serial.print("count: ");
+//  Serial.print(count);
+ Serial.print(step);
+ Serial.print(" ");
  //count二回で1.8° 400カウントでタイヤ１周
  //94.575mm(左右タイヤの中心感覚) * 3.14/8 =37.12mm (45°)
  //タイヤ円周＝48mm(直径)*3.14=150.72mm: 360°
  //150.72/200=0.7536mm : 1.8° count二回で0.7536mm動く.  37.12/0.7536=49.2569 *2 count=98.5 45°
- 
- //count:105 45° count:92 40° count:81 35° count:69 30° count:58 25° count:46 20° count:35 15° count:23 10° count:12 5° count:0 0° 1°あたり2.3count 
-if(count > 99){
+
+ //前回の仕様の場合count:105 45° count:92 40° count:81 35° count:69 30° count:58 25° count:46 20° count:35 15° count:23 10° count:12 5° count:0 0° 1°あたり2.3count 
+//sw検知
+sw1 = digitalRead(upswitch);
+sw2 = digitalRead(downswitch);
+//sw2 loopからbreak
+if(sw1==1){
   Reset();
   break;
 }
+//sw1を押すことでモード実行
+if (sw2 == 1){
+    mode = 1;
+    delay(300);
+  }
+//stepが50を超えたらmodeを変更し、モーターを止める
+if(step >= 100){
+  mode = 2;
+}
+//mode1 モーターを回す
+if(mode == 1){
+  output = !output;
+  count++;
+}
+if(count==2){
+  step++;
+  count = 0;
+}
 
+delay(10);
+digitalWrite(CLOCK_L,output);
+digitalWrite(CLOCK_R,output);
 //センサーテストコード
   Curve = analogRead(Curve_Sensor);
   Serial.print(Curve, DEC);
@@ -965,7 +991,7 @@ if(count > 99){
   Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
+  Serial.println(" ");
   // millis()
   }
 }
