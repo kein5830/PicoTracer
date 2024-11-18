@@ -922,8 +922,8 @@ void Scene4() {
 void Scene5() {
   boolean output = LOW;
   int count = 0;
-  int step = 0;
-  int ct=0,mode = 0; 
+//  int step = 0;
+//  int ct=0,mode = 0; 
   //int deg[45] = {49,48,}
   while(1){
   //旋回
@@ -931,12 +931,11 @@ void Scene5() {
   digitalWrite(CWCCW_R, HIGH); 
   //  モーターテストコード
 //  output = !output;
-//  count++;
 //  delay(2);
 //  Serial.print("count: ");
 //  Serial.print(count);
- Serial.print(step);
- Serial.print(" ");
+// Serial.print(step);
+// Serial.print(" ");
  //count二回で1.8° 400カウントでタイヤ１周
  //94.575mm(左右タイヤの中心感覚) * 3.14/8 =37.12mm (45°)
  //タイヤ円周＝48mm(直径)*3.14=150.72mm: 360°
@@ -944,54 +943,73 @@ void Scene5() {
 
  //前回の仕様の場合count:105 45° count:92 40° count:81 35° count:69 30° count:58 25° count:46 20° count:35 15° count:23 10° count:12 5° count:0 0° 1°あたり2.3count 
 //sw検知
-sw1 = digitalRead(upswitch);
-sw2 = digitalRead(downswitch);
-//sw2 loopからbreak
-if(sw1==1){
-  Reset();
-  break;
-}
-//sw1を押すことでモード実行
-if (sw2 == 1){
-    mode = 1;
-    delay(300);
-  }
-//stepが50を超えたらmodeを変更し、モーターを止める
-if(step >= 100){
-  mode = 2;
-}
-//mode1 モーターを回す
-if(mode == 1){
-  output = !output;
-  count++;
-}
-if(count==2){
-  step++;
-  count = 0;
-}
+//sw1 = digitalRead(upswitch);
+//sw2 = digitalRead(downswitch);
+////sw2 loopからbreak
+//if(sw1==1){
+//  Reset();
+//  break;
+//}
+////sw1を押すことでモード実行
+//if (sw2 == 1){
+//    mode = 1;
+//    delay(300);
+//  }
+////stepが50を超えたらmodeを変更し、モーターを止める
+//if(step >= 100){
+//  mode = 2;
+//}
+////mode1 モーターを回す
+//if(mode == 1){
+//  output = !output;
+//  count++;
+//}
+//if(count==2){
+//  step++;
+//  count = 0;
+//}
 
-delay(10);
-digitalWrite(CLOCK_L,output);
-digitalWrite(CLOCK_R,output);
+//digitalWrite(CLOCK_L,output);
+//digitalWrite(CLOCK_R,output);
 //センサーテストコード
-  Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.print(" ");
+//  Curve = analogRead(Curve_Sensor);
+//  Serial.print(count, DEC);
+//  Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
   Serial.print(sensorLL, DEC);
-  Serial.print(" ");
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
-  sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
   Serial.println(" ");
+//  sensorL = read_adc(ch0, SELPIN2);//sensor l
+//  Serial.print(sensorL, DEC);
+//  Serial.print(" ");
+//  sensorR = read_adc(ch1, SELPIN1);//sensor r
+//  Serial.print(sensorR, DEC);
+//  Serial.print(" ");
+//  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+//  Serial.print(sensorRR, DEC);
+//  Serial.print(" ");
+//  sensorGoal = analogRead(GOALSENSOR);
+//  Serial.print(sensorGoal, DEC);
+//  Serial.println(" ");
   // millis()
+  LL_log[count] = sensorLL;
+  count++;
+  if(count==23000){
+    Reset();
+    break;
+    }
+  }
+  
+}
+
+
+void Scene6() {
+  int count =0;
+ while(1){
+    Serial.println(LL_log[count]);
+    count++;
+    if(count==23000){
+    Reset();
+    break;
+    }
   }
 }

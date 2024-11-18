@@ -1,3 +1,6 @@
+//C言語標準ライブラリ
+#include "stdlib.h"
+
 //タイマーライブラリ
 #include "RPi_Pico_TimerInterrupt.h"
 #include "hardware/pwm.h"
@@ -120,7 +123,28 @@ uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
 // ディスプレイ表示
 void Oled_run(float volt);
 
+uint16_t LL_log[5000];
+uint16_t RR_log[5000];
+uint16_t SS_log[5000];
+uint16_t TT_log[5000];
+uint16_t GG_log[5000];
+
+
+//ログ保存用構造体
+//typedef struct {
+//
+//    
+//}LOG_t
+//
+//LOG_t logdata;
+
 void setup() {
+  memset(LL_log, 0, sizeof(LL_log));
+  memset(RR_log, 0, sizeof(RR_log));
+  memset(SS_log, 0, sizeof(SS_log));
+  memset(TT_log, 0, sizeof(TT_log));
+  memset(GG_log, 0, sizeof(GG_log));
+
   //マイコン電源確認用LEDの点灯
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -285,6 +309,9 @@ void loop() {
         break;
       case 5:
         Scene5();
+        break;
+      case 6:
+        Scene6();
         break;
       default:
         Serial.println("Select Number");
