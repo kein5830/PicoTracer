@@ -310,11 +310,8 @@ void loop() {
       case 5:
         Scene5();
         break;
-      case 6:
-        Scene6();
-        break;
       default:
-        Serial.println("Select Number");
+        Serial.println("Undefined Number");
         break;
     }
   }

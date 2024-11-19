@@ -1,4 +1,12 @@
-//ADコンバータ内容取得関数
+
+/*@fn
+ADコンバータ(mcp3002)の値取得関数
+@brief 2つのADコンバータの値を順番に取得する
+@param (int channel) ADコンバータのch番号 ch0 or ch1
+@param (int select) ２つ搭載しているADコンバータの指定 SELPIN1 or SELPIN2
+@return AD変換値（ラインセンサー値）
+@details 接続しているラインセンサーの値を取得する
+ */
 int read_adc(int channel, int select) {
   int adcvalue = 0;
   //byte commandbits = B11000000;  //B(スタート)(1:シングルエンドモード)
@@ -32,9 +40,16 @@ int read_adc(int channel, int select) {
   return adcvalue;
 }
 
-//タイマー割り込み関数
+//タイマー割り込み関数 ここまで
 
-
+/*@fn
+ADコンバータ(mcp3002)の値取得関数
+@brief 2つのADコンバータの値を順番に取得する
+@param (int channel) ADコンバータのch番号 ch0 or ch1
+@param (int select) ２つ搭載しているADコンバータの指定 SELPIN1 or SELPIN2
+@return AD変換値（ラインセンサー値）
+@details 接続しているラインセンサーの値を取得する
+ */
 bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
   //距離測定用
     static int del = 0;
@@ -920,15 +935,13 @@ void Scene4() {
 }
 //テスト
 void Scene5() {
-  boolean output = LOW;
-  int count = 0;
 //  int step = 0;
 //  int ct=0,mode = 0; 
   //int deg[45] = {49,48,}
   while(1){
   //旋回
-  digitalWrite(CWCCW_L, HIGH);
-  digitalWrite(CWCCW_R, HIGH); 
+//  digitalWrite(CWCCW_L, HIGH);
+//  digitalWrite(CWCCW_R, HIGH); 
   //  モーターテストコード
 //  output = !output;
 //  delay(2);
@@ -975,9 +988,9 @@ void Scene5() {
 //  Curve = analogRead(Curve_Sensor);
 //  Serial.print(count, DEC);
 //  Serial.print(" ");
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  Serial.print(sensorLL, DEC);
-  Serial.println(" ");
+//  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
+//  Serial.print(sensorLL, DEC);
+//  Serial.println(" ");
 //  sensorL = read_adc(ch0, SELPIN2);//sensor l
 //  Serial.print(sensorL, DEC);
 //  Serial.print(" ");
@@ -991,25 +1004,6 @@ void Scene5() {
 //  Serial.print(sensorGoal, DEC);
 //  Serial.println(" ");
   // millis()
-  LL_log[count] = sensorLL;
-  count++;
-  if(count==23000){
-    Reset();
-    break;
-    }
   }
   
-}
-
-
-void Scene6() {
-  int count =0;
- while(1){
-    Serial.println(LL_log[count]);
-    count++;
-    if(count==23000){
-    Reset();
-    break;
-    }
-  }
 }
