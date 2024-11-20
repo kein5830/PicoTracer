@@ -42,7 +42,7 @@
 //ブザーピン
 #define BUZZER 4
 
-// I2Cに接続されたSSD1306用「display」の宣言
+// I2Cに接続されたSSD1306用ライブラリの実態「display」の宣言
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 //タイマー関連
@@ -123,6 +123,7 @@ uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
 // ディスプレイ表示
 void Oled_run(float volt);
 
+//センサー値のログ保存用
 uint16_t LL_log[5000];
 uint16_t RR_log[5000];
 uint16_t SS_log[5000];
@@ -200,8 +201,7 @@ void setup() {
   pwm_set_clkdiv(pwm_slice1, 100.0);
   pwm_set_clkdiv(pwm_slice2, 100.0);
 
-  // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
-  // pwm_set_chan_level(slice_num, PWM_CHAN_A, 2315);
+
   /*
   ディスプレイ設定　初期表示
   */
@@ -240,22 +240,22 @@ void loop() {
   Oled_run(voltage,Mode);
   
   //モード選択
-  static bool a = 0;
+  static bool once = 0;
   sw1 = digitalRead(upswitch);
   sw2 = digitalRead(downswitch);
   if (sw1 == 1) {
     Mode++;
-    //Mode：９まで    
+    //Mode：0~9まで   
     if(Mode==10){
       Mode=0;
       }
     digitalWrite(LED_BUILTIN, LOW);
-    a = 0;
+    once = 0;
     delay(300);
     digitalWrite(LED_BUILTIN, HIGH);
   }
   
-  if (a == 0) {
+  if (once == 0) {
     Serial.print("ModeNumber:");
     Serial.println(Mode);
     a = 1;
@@ -264,14 +264,14 @@ void loop() {
   if (sw2 == 1) {
     Run++;
     digitalWrite(LED_BUILTIN, LOW);
-    a=1;
+    once=1;
     delay(300);
     digitalWrite(LED_BUILTIN, HIGH);
   }
   
 
   if (Run == 1) {
-    if(a == 1){
+    if(once == 1){
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
     digitalWrite(LED_BUILTIN, HIGH);
@@ -288,7 +288,7 @@ void loop() {
     digitalWrite(ENABLE_L, LOW);
     digitalWrite(ENABLE_R, LOW);
     //実行時に一回だけLED点滅　値リセット
-    a = 0;
+    once = 0;
     }
   
     switch (Mode) {
