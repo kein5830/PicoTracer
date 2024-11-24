@@ -87,11 +87,11 @@ float Hz_wrap(float pulsefreq){
  */
 void Reset(){
   //プッシュスイッチカウント
-  Run = 0,Mode = 0;
+  Run = 0,Scene = 0;
   //走行距離
   distance=0,Step=0;
   //一回しか実行しないための変数（なぜかｂしか使ってない）
-  b = 0, c = 0;
+  b = 0, c = 0,one = 0;
   //入力速度
   inputL = 0;
   inputR = 0;
@@ -106,6 +106,9 @@ void Reset(){
   //ラインカウンタ
   count = 0, cross = 0;
   tmp = 0, tmpc = 0;
+  //モーター電源オフ
+  digitalWrite(ENABLE_L, LOW);
+  digitalWrite(ENABLE_R, LOW);
   Serial.print("Reset");
 }
 
@@ -117,10 +120,21 @@ void Reset(){
 @return void
 @details 実行メニューや、走行に仕様する変数をリセットする
  */
-void Oled_run(float volt,int runmode){
-  //表示
+void Oled_Update(float volt,int runscene,bool runmode ){
+  //点滅表示用処理
+  static uint8_t count = 0;
+  static bool ON = 0;
+  count++;
+//  Serial.print(millis());
+//  Serial.print(" ");
+//  Serial.println(count);
+  if(count>=5){
+    ON = !ON;
+    count = 0;
+    }
+    
   display.clearDisplay();     // 表示クリア
-  Serial.println("動作");
+  
   // タイトル表示
   display.setTextSize(2);     // 文字サイズ（1）
   display.setCursor(4, 0);    // 表示開始位置左上角（X,Y）
@@ -142,10 +156,22 @@ void Oled_run(float volt,int runmode){
   display.println("No.");    // 表示内容
   
   //走行モード
+  
   display.setTextSize(2);     // 文字サイズ（1）
   display.setCursor(110, 22);    // 表示開始位置左上角（X,Y）
-  display.println(runmode);    // 表示内容
+  display.println(runscene);    // 表示内容
 
+  //待機中表示
+  if(ON == 1 && runmode == 0){
+    display.setTextSize(2);     // 文字サイズ（1）
+    display.setCursor(4, 44);    // 表示開始位置左上角（X,Y）
+    display.println("Select No.");    // 表示内容  
+  }else if(runmode == 1){
+        display.setTextSize(2);     // 文字サイズ（1）
+        display.setCursor(4, 44);    // 表示開始位置左上角（X,Y）
+        display.println("Running...");    // 表示内容
+    }
+  
   display.display();  // 表示実行
 }
 
@@ -825,7 +851,7 @@ void Scene4() {
   sw1 = digitalRead(upswitch);
   sw2 = digitalRead(downswitch);
   if (sw1 == 1) {
-    Run = 0,Mode = 0,Speed=0.0;
+    Run = 0,Scene = 0,Speed=0.0;
     digitalWrite(ENABLE_L, HIGH);
     digitalWrite(ENABLE_R, HIGH);
     Reset();
