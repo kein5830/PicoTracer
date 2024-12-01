@@ -87,7 +87,7 @@ float Hz_wrap(float pulsefreq){
  */
 void Reset(){
   //プッシュスイッチカウント
-  Run = 0,Scene = 0;
+  Scene = 0;
   //走行距離
   distance=0,Step=0;
   //一回しか実行しないための変数（なぜかｂしか使ってない）
@@ -107,9 +107,15 @@ void Reset(){
   count = 0, cross = 0;
   tmp = 0, tmpc = 0;
   //モーター電源オフ
-  digitalWrite(ENABLE_L, LOW);
-  digitalWrite(ENABLE_R, LOW);
+  digitalWrite(ENABLE_L, HIGH);
+  digitalWrite(ENABLE_R, HIGH);
+  //初回しか実行しない変数リセット
   one = 0;
+  //PWM停止
+  pwm_set_enabled(pwm_slice1, false);
+  pwm_set_enabled(pwm_slice2, false);
+  //Scene4スピード変数リセット
+  Speed = 0.0;
   Serial.print("Reset");
 }
 
@@ -317,25 +323,25 @@ void Scene0() {
   pwm_set_enabled(pwm_slice2, true);
 
 
-  Serial.print(" P:");
-  Serial.print(P);
-  Serial.print(" D:");
-  Serial.print(D);
-  Serial.print(" I:");
-  Serial.print(I);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR:");
-  Serial.print(inputR);
-  Serial.print(" count:");
-  Serial.print(count);
-  Serial.print(" cross:");
-  Serial.print(cross);
-  Serial.print(" tmp:");
-  Serial.print(tmp);
-  Serial.print(" tmpc:");
-  Serial.println(tmpc);
-  
+//  Serial.print(" P:");
+//  Serial.print(P);
+//  Serial.print(" D:");
+//  Serial.print(D);
+//  Serial.print(" I:");
+//  Serial.print(I);
+//  Serial.print(" inputL:");
+//  Serial.print(inputL);
+//  Serial.print(" inputR:");
+//  Serial.print(inputR);
+//  Serial.print(" count:");
+//  Serial.print(count);
+//  Serial.print(" cross:");
+//  Serial.print(cross);
+//  Serial.print(" tmp:");
+//  Serial.print(tmp);
+//  Serial.print(" tmpc:");
+//  Serial.println(tmpc);
+//  
 }
 
 //基本走行
@@ -472,24 +478,24 @@ void Scene1() {
       Run =0;
     }
 
-  Serial.print(" P:");
-  Serial.print(P);
-  Serial.print(" D:");
-  Serial.print(D);
-  Serial.print(" I:");
-  Serial.print(I);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR:");
-  Serial.print(inputR);
-  Serial.print(" count:");
-  Serial.print(count);
-  Serial.print(" cross:");
-  Serial.print(cross);
-  Serial.print(" tmp:");
-  Serial.print(distance);
-  Serial.print(" SP:");
-  Serial.println(SP);
+//  Serial.print(" P:");
+//  Serial.print(P);
+//  Serial.print(" D:");
+//  Serial.print(D);
+//  Serial.print(" I:");
+//  Serial.print(I);
+//  Serial.print(" inputL:");
+//  Serial.print(inputL);
+//  Serial.print(" inputR:");
+//  Serial.print(inputR);
+//  Serial.print(" count:");
+//  Serial.print(count);
+//  Serial.print(" cross:");
+//  Serial.print(cross);
+//  Serial.print(" tmp:");
+//  Serial.print(distance);
+//  Serial.print(" SP:");
+//  Serial.println(SP);
   
 }
 
@@ -628,24 +634,24 @@ void Scene2() {
       Run = 0;
     }
 
-  Serial.print(" P:");
-  Serial.print(P);
-  Serial.print(" D:");
-  Serial.print(D);
-  Serial.print(" I:");
-  Serial.print(I);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR:");
-  Serial.print(inputR);
-  Serial.print(" count:");
-  Serial.print(count);
-  Serial.print(" cross:");
-  Serial.print(cross);
-  Serial.print(" tmp:");
-  Serial.print(distance);
-  Serial.print(" SP:");
-  Serial.println(SP);
+//  Serial.print(" P:");
+//  Serial.print(P);
+//  Serial.print(" D:");
+//  Serial.print(D);
+//  Serial.print(" I:");
+//  Serial.print(I);
+//  Serial.print(" inputL:");
+//  Serial.print(inputL);
+//  Serial.print(" inputR:");
+//  Serial.print(inputR);
+//  Serial.print(" count:");
+//  Serial.print(count);
+//  Serial.print(" cross:");
+//  Serial.print(cross);
+//  Serial.print(" tmp:");
+//  Serial.print(distance);
+//  Serial.print(" SP:");
+//  Serial.println(SP);
   
 }
 
@@ -796,24 +802,24 @@ void Scene3() {
       Run = 0;
     }
 
-  Serial.print(" P:");
-  Serial.print(P);
-  Serial.print(" D:");
-  Serial.print(D);
-  Serial.print(" I:");
-  Serial.print(I);
-  Serial.print(" inputL:");
-  Serial.print(inputL);
-  Serial.print(" inputR:");
-  Serial.print(inputR);
-  Serial.print(" count:");
-  Serial.print(count);
-  Serial.print(" cross:");
-  Serial.print(cross);
-  Serial.print(" tmp:");
-  Serial.print(distance);
-  Serial.print(" SP:");
-  Serial.println(SP);
+//  Serial.print(" P:");
+//  Serial.print(P);
+//  Serial.print(" D:");
+//  Serial.print(D);
+//  Serial.print(" I:");
+//  Serial.print(I);
+//  Serial.print(" inputL:");
+//  Serial.print(inputL);
+//  Serial.print(" inputR:");
+//  Serial.print(inputR);
+//  Serial.print(" count:");
+//  Serial.print(count);
+//  Serial.print(" cross:");
+//  Serial.print(cross);
+//  Serial.print(" tmp:");
+//  Serial.print(distance);
+//  Serial.print(" SP:");
+//  Serial.println(SP);
 
 }
 
@@ -825,11 +831,7 @@ void Scene3() {
 @details　ハードウェアを変更した時にモーターが動作するかを確認するようの関数
  */
 void Scene4() {
-  //現在の速度
-  static float Speed = 0.0;
- 
   //PWM
-
   pwm_set_wrap(pwm_slice1, Hz_wrap(Speed));
   pwm_set_wrap(pwm_slice2, Hz_wrap(Speed));
   Speed=Speed+0.01;
@@ -838,14 +840,12 @@ void Scene4() {
   }
   pwm_set_enabled(pwm_slice1, true);
   pwm_set_enabled(pwm_slice2, true);
-  Serial.print(" Sw1:");
-  Serial.print(sw1);
-  Serial.print(" Sw2:");
-  Serial.print(sw2);
-  Serial.print(" Speed:");
-  Serial.println(Speed);
-  sw1 = digitalRead(upswitch);
-  sw2 = digitalRead(downswitch);
+//  Serial.print(" Sw1:");
+//  Serial.print(sw1);
+//  Serial.print(" Sw2:");
+//  Serial.print(sw2);
+//  Serial.print(" Speed:");
+//  Serial.println(Speed);
 
 }
 //テスト

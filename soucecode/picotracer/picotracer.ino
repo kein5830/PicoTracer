@@ -137,6 +137,10 @@ unsigned long currentMillis = 0;
 static unsigned long volt_prevmillis = 0;
 static unsigned long oled_prevmillis = 0;
 static unsigned long button_prevmillis = 0;
+
+//Scene4用スピード記録変数
+static float Speed = 0.0;
+
 //----------------------------------------------------------
 //　関数プロトタイプ宣言
 //----------------------------------------------------------
@@ -277,7 +281,9 @@ void loop() {
   }
   //プッシュスイッチONOFF検知 10ms
   if ((currentMillis = millis()) - button_prevmillis >=  50) {
-    sw1 = digitalRead(upswitch);
+    if(Run == 0){
+      sw1 = digitalRead(upswitch);
+    }
     sw2 = digitalRead(downswitch);
     button_prevmillis = currentMillis;
   }
