@@ -152,9 +152,9 @@ int pulseHz(int pulsefreq);  //パルス周波数⇨パルス幅変換
 uint pwm_slice1 = pwm_gpio_to_slice_num(CLOCK_R);
 uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
 // ディスプレイ表示
-void Oled_Update(float volt, int runscene, bool runmode);
-
-
+void Oled_Update(float volt, int runscene, uint8_t runmode);
+//リセット関数
+void Reset();
 
 
 //ログ保存用構造体
@@ -239,7 +239,7 @@ void setup() {
   // OLED表示設定 文字色
   display.setTextColor(SSD1306_WHITE);
 
-  // ディスプレイ表示
+//  // ディスプレイ表示
   Oled_Update(0.0, 0, 0);
   delay(100);
 
@@ -261,18 +261,20 @@ void loop() {
   //----------------------------------------------------------
   //　定周期処理
   //----------------------------------------------------------
-  //バッテリー電圧更新 500ms
-  if ((currentMillis = millis()) - volt_prevmillis >=  500) {
-    voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.1);
-    volt_prevmillis = currentMillis;
+  //待機モード時のみ実行
+  if(Run == 0){
+    //バッテリー電圧更新 500ms
+    if ((currentMillis = millis()) - volt_prevmillis >=  500) {
+      voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.1);
+      volt_prevmillis = currentMillis;
+    }
+  
+    //ディスプレイ更新 100ms
+    if ((currentMillis = millis()) - oled_prevmillis >=  100) {
+      Oled_Update(voltage, Scene, Run);
+      oled_prevmillis = currentMillis;
+    }
   }
-
-  //ディスプレイ更新 100ms
-  if ((currentMillis = millis()) - oled_prevmillis >=  100) {
-    Oled_Update(voltage, Scene, Run);
-    oled_prevmillis = currentMillis;
-  }
-
   //プッシュスイッチONOFF検知 10ms
   if ((currentMillis = millis()) - button_prevmillis >=  50) {
     sw1 = digitalRead(upswitch);
@@ -282,7 +284,6 @@ void loop() {
   //----------------------------------------------------------
   //　イベント処理
   //----------------------------------------------------------
-  //
   if (sw1 == 1 && temp1 == 0) {
     Scene++;
     //Scene：0~9まで
@@ -291,51 +292,78 @@ void loop() {
     }
     temp1 = 1;
   }
-  //実行、停止
-  if (sw2 == 1 && temp2 == 0) {
-    Run = !Run;
-    //走行中にプッシュスイッチが押された場合、各変数をリセット
-    if (Run == 0) {
-      Reset();
-    }
-    temp2 = 1;
-  }
+  
   if (sw1 == 0 && temp1 == 1) {
     temp1 = 0;
   }
   if (sw2 == 0 && temp2 == 1) {
     temp2 = 0;
   }
-
-  if (Run == 1) {
-    if(one == 0){
-      //モーター電源オン
-      digitalWrite(ENABLE_L, LOW);
-      digitalWrite(ENABLE_R, LOW);
-      one = 1; 
+  //実行、停止
+  if (sw2 == 1 && temp2 == 0) {
+    Run = !Run;
+  //走行中にプッシュスイッチが押された場合、各変数をリセット
+    if (Run == 0) {
+      Reset();
     }
-    switch (Scene) {
-      case 0:
-        Scene0();
-        break;
-      case 1:
-        Scene1();
-        break;
-      case 2:
-        Scene2();
-        break;
-      case 3:
-        Scene3();
-        break;
-      case 4:
-        Scene4();
-        break;
-      case 5:
-        Scene5();
-        break;
-      default:
-        Serial.println("Undefined Number");
-        break;
-    }
+    temp2 = 1;
   }
+  if(Run ==1){
+  //----------------------------------------------------------
+  //　実行モードに遷移時に1回だけ実行する処理
+  //----------------------------------------------------------
+    if (one == 0) {
+        //モーター電源オン
+        digitalWrite(ENABLE_L, LOW);
+        digitalWrite(ENABLE_R, LOW);
+        //Running...表示させるために1回ディスプレイを更新
+        Oled_Update(voltage, Scene, Run);
+        one = 1; 
+      }
+  //----------------------------------------------------------
+  //　実行関数
+  //----------------------------------------------------------
+      switch (Scene) {
+        case 0:
+          Scene0();
+          break;
+        case 1:
+          Scene1();
+          break;
+        case 2:
+          Scene2();
+          break;
+        case 3:
+          Scene3();
+          break;
+        case 4:
+          Scene4();
+          break;
+        //未定義表示
+        case 5:
+          Oled_Update(voltage, Scene, 2);
+          Scene5();
+          break;
+        //未定義表示
+        case 6:
+          Oled_Update(voltage, Scene, 2);
+          break;
+        //未定義表示
+        case 7:
+          Oled_Update(voltage, Scene, 2);
+          break;
+        //未定義表示
+        case 8:
+          Oled_Update(voltage, Scene, 2);
+          break;
+        //未定義表示
+        case 9:
+          Oled_Update(voltage, Scene, 2);
+          break;
+        //ありえないとは思うが一応他番号になった場合にエラー表示
+        default:
+          Oled_Update(voltage, Scene, 3);
+          break;
+      }
+   }
 }

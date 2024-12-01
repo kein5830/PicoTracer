@@ -109,6 +109,7 @@ void Reset(){
   //モーター電源オフ
   digitalWrite(ENABLE_L, LOW);
   digitalWrite(ENABLE_R, LOW);
+  one = 0;
   Serial.print("Reset");
 }
 
@@ -120,7 +121,7 @@ void Reset(){
 @return void
 @details 実行メニューや、走行に仕様する変数をリセットする
  */
-void Oled_Update(float volt,int runscene,bool runmode ){
+void Oled_Update(float volt,int runscene,uint8_t runmode ){
   //点滅表示用処理
   static uint8_t count = 0;
   static bool ON = 0;
@@ -146,30 +147,41 @@ void Oled_Update(float volt,int runscene,bool runmode ){
   display.drawFastHLine(0, 40, 128, WHITE);  // 線（指定座標から平行線）
   
   //電圧値
-  display.setTextSize(2);     // 文字サイズ（1）
-  display.setCursor(4, 22);    // 表示開始位置左上角（X,Y）
-  display.println(volt);    // 表示内容
+  display.setTextSize(2);
+  display.setCursor(4, 22);
+  display.println(volt);
 
   // No.
-  display.setTextSize(2);     // 文字サイズ（1）
-  display.setCursor(69, 22);    // 表示開始位置左上角（X,Y）
-  display.println("No.");    // 表示内容
+  display.setTextSize(2);
+  display.setCursor(69, 22);
+  display.println("No.");
   
   //走行モード
   
-  display.setTextSize(2);     // 文字サイズ（1）
-  display.setCursor(110, 22);    // 表示開始位置左上角（X,Y）
-  display.println(runscene);    // 表示内容
+  display.setTextSize(2);
+  display.setCursor(110, 22);
+  display.println(runscene);
 
   //待機中表示
   if(ON == 1 && runmode == 0){
-    display.setTextSize(2);     // 文字サイズ（1）
-    display.setCursor(4, 44);    // 表示開始位置左上角（X,Y）
-    display.println("Select No.");    // 表示内容  
+    display.setTextSize(2);
+    display.setCursor(4, 44);
+    display.println("Select No.");
   }else if(runmode == 1){
-        display.setTextSize(2);     // 文字サイズ（1）
-        display.setCursor(4, 44);    // 表示開始位置左上角（X,Y）
-        display.println("Running...");    // 表示内容
+        //実行表示
+        display.setTextSize(2);
+        display.setCursor(4, 44);
+        display.println("Running...");
+    }else if(runmode == 2){
+        //未定義表示
+        display.setTextSize(2);
+        display.setCursor(4, 44);
+        display.println("No Action");
+    }else if(runmode == 3){
+        //エラー表示
+        display.setTextSize(2);
+        display.setCursor(4, 44);
+        display.println("No. Error");
     }
   
   display.display();  // 表示実行
@@ -183,7 +195,6 @@ void Oled_Update(float volt,int runscene,bool runmode ){
 @details　PI制御　スタート時のゆっくり加速なし 最高速度450 定速
  */
 void Scene0() {
-  while(1){
 
   if(c == 0){
     //基準速度
@@ -200,23 +211,24 @@ void Scene0() {
 
 
   Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  Serial.print(sensorLL, DEC);
-  Serial.print(" ");
   sensorL = read_adc(ch0, SELPIN2);//sensor l
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
   sensorR = read_adc(ch1, SELPIN1);//sensor r
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
   sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
+
+//  Serial.print(Curve, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorLL, DEC)
+//  Serial.print(" ");
+//  Serial.print(sensorL, DEC);
+//  Serial.print(" "); 
+//  Serial.print(sensorR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorRR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorGoal, DEC);
+//  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 100 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
@@ -252,10 +264,8 @@ void Scene0() {
   }
   if (distance > 100) {  //停止位置は試走会で調整
       ITimer0.stopTimer();
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
       Reset();
-      break;
+      Run = 0; 
     }
 
   //今回の差分
@@ -325,7 +335,7 @@ void Scene0() {
   Serial.print(tmp);
   Serial.print(" tmpc:");
   Serial.println(tmpc);
-  }
+  
 }
 
 //基本走行
@@ -338,8 +348,6 @@ void Scene0() {
 @details　P制御のみ　スタート時のゆっくり加速あり+0.35　最高速度850
  */
 void Scene1() {
-
-  while(1){
   
   if(c == 0){
     //基準速度
@@ -353,26 +361,25 @@ void Scene1() {
     // 1回しか入らないようcを1にする
     c = 1;
   }
-         
   Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  Serial.print(sensorLL, DEC);
-  Serial.print(" ");
   sensorL = read_adc(ch0, SELPIN2);//sensor l
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
   sensorR = read_adc(ch1, SELPIN1);//sensor r
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
   sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
 
+//  Serial.print(Curve, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorLL, DEC)
+//  Serial.print(" ");
+//  Serial.print(sensorL, DEC);
+//  Serial.print(" "); 
+//  Serial.print(sensorR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorRR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorGoal, DEC);
+//  Serial.print(" ");
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
     count++;
@@ -461,10 +468,8 @@ void Scene1() {
       ITimer0.stopTimer();
       inputL=0.0;
       inputR=0.0;
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
       Reset();
-      break;
+      Run =0;
     }
 
   Serial.print(" P:");
@@ -485,9 +490,7 @@ void Scene1() {
   Serial.print(distance);
   Serial.print(" SP:");
   Serial.println(SP);
-  }
-
-
+  
 }
 
 /*
@@ -498,7 +501,6 @@ void Scene1() {
 @details　PI制御　スタート時のゆっくり加速あり　+0.25 最高速度700
  */
 void Scene2() {
-  while(1){
   
   if(c == 0){
     //基準速度
@@ -514,23 +516,24 @@ void Scene2() {
   }
 
   Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  Serial.print(sensorLL, DEC);
-  Serial.print(" ");
   sensorL = read_adc(ch0, SELPIN2);//sensor l
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
   sensorR = read_adc(ch1, SELPIN1);//sensor r
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
   sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
+
+//  Serial.print(Curve, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorLL, DEC)
+//  Serial.print(" ");
+//  Serial.print(sensorL, DEC);
+//  Serial.print(" "); 
+//  Serial.print(sensorR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorRR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorGoal, DEC);
+//  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
@@ -621,10 +624,8 @@ void Scene2() {
       ITimer0.stopTimer();
       inputL=0.0;
       inputR=0.0;
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
       Reset();
-      break;
+      Run = 0;
     }
 
   Serial.print(" P:");
@@ -645,7 +646,7 @@ void Scene2() {
   Serial.print(distance);
   Serial.print(" SP:");
   Serial.println(SP);
-  }
+  
 }
 
 
@@ -659,7 +660,6 @@ void Scene2() {
 @details　PI制御　スタート時のゆっくり加速あり+0.35 最高速度800
  */
 void Scene3() {
-  while(1){
   
   if(c == 0){
     //基準速度
@@ -675,23 +675,24 @@ void Scene3() {
   }
          
   Curve = analogRead(Curve_Sensor);
-  Serial.print(Curve, DEC);
-  Serial.print(" ");
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  Serial.print(sensorLL, DEC);
-  Serial.print(" ");
   sensorL = read_adc(ch0, SELPIN2);//sensor l
-  Serial.print(sensorL, DEC);
-  Serial.print(" ");
   sensorR = read_adc(ch1, SELPIN1);//sensor r
-  Serial.print(sensorR, DEC);
-  Serial.print(" ");
   sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  Serial.print(sensorRR, DEC);
-  Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
-  Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
+
+//  Serial.print(Curve, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorLL, DEC)
+//  Serial.print(" ");
+//  Serial.print(sensorL, DEC);
+//  Serial.print(" "); 
+//  Serial.print(sensorR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorRR, DEC);
+//  Serial.print(" ");
+//  Serial.print(sensorGoal, DEC);
+//  Serial.print(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
@@ -792,10 +793,7 @@ void Scene3() {
       ITimer0.stopTimer();
       inputL=0.0;
       inputR=0.0;
-      digitalWrite(ENABLE_L, HIGH);
-      digitalWrite(ENABLE_R, HIGH);
-      Reset();
-      break;
+      Run = 0;
     }
 
   Serial.print(" P:");
@@ -816,7 +814,7 @@ void Scene3() {
   Serial.print(distance);
   Serial.print(" SP:");
   Serial.println(SP);
-  }
+
 }
 
 /*
@@ -827,8 +825,6 @@ void Scene3() {
 @details　ハードウェアを変更した時にモーターが動作するかを確認するようの関数
  */
 void Scene4() {
-  while(1){
-
   //現在の速度
   static float Speed = 0.0;
  
@@ -850,14 +846,7 @@ void Scene4() {
   Serial.println(Speed);
   sw1 = digitalRead(upswitch);
   sw2 = digitalRead(downswitch);
-  if (sw1 == 1) {
-    Run = 0,Scene = 0,Speed=0.0;
-    digitalWrite(ENABLE_L, HIGH);
-    digitalWrite(ENABLE_R, HIGH);
-    Reset();
-    break;
-  }
-  }
+
 }
 //テスト
 /*
@@ -871,7 +860,6 @@ void Scene5() {
 //  int step = 0;
 //  int ct=0,mode = 0; 
   //int deg[45] = {49,48,}
-  while(1){
   //旋回
 //  digitalWrite(CWCCW_L, HIGH);
 //  digitalWrite(CWCCW_R, HIGH); 
@@ -937,6 +925,5 @@ void Scene5() {
 //  Serial.print(sensorGoal, DEC);
 //  Serial.println(" ");
   // millis()
-  }
   
 }
