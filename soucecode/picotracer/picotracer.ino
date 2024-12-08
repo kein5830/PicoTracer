@@ -137,6 +137,7 @@ unsigned long currentMillis = 0;
 static unsigned long volt_prevmillis = 0;
 static unsigned long oled_prevmillis = 0;
 static unsigned long button_prevmillis = 0;
+static unsigned long run_prevmillis = 0;
 
 //Scene4用スピード記録変数
 static float Speed = 0.0;
@@ -159,7 +160,8 @@ uint pwm_slice2 = pwm_gpio_to_slice_num(CLOCK_L);
 void Oled_Update(float volt, int runscene, uint8_t runmode);
 //リセット関数
 void Reset();
-
+//周波数、wrap値変換
+uint16_t Hz_wrap(float pulsefreq);
 
 //ログ保存用構造体
 //typedef struct {
@@ -256,6 +258,13 @@ void setup() {
 
 
 void loop() {
+
+//----------------------------------------------------------
+//----------------------------------------------------------
+//　                     待機モード
+//----------------------------------------------------------
+//----------------------------------------------------------
+  
   //----------------------------------------------------------
   //　ローカル変数定義
   //----------------------------------------------------------
@@ -314,6 +323,13 @@ void loop() {
     }
     temp2 = 1;
   }
+
+//----------------------------------------------------------
+//----------------------------------------------------------
+//　                     実行モード
+//----------------------------------------------------------
+//----------------------------------------------------------
+
   if(Run ==1){
   //----------------------------------------------------------
   //　実行モードに遷移時に1回だけ実行する処理
@@ -329,47 +345,51 @@ void loop() {
   //----------------------------------------------------------
   //　実行関数
   //----------------------------------------------------------
-      switch (Scene) {
-        case 0:
-          Scene0();
-          break;
-        case 1:
-          Scene1();
-          break;
-        case 2:
-          Scene2();
-          break;
-        case 3:
-          Scene3();
-          break;
-        case 4:
-          Scene4();
-          break;
-        //未定義表示
-        case 5:
-          Oled_Update(voltage, Scene, 2);
-          Scene5();
-          break;
-        //未定義表示
-        case 6:
-          Oled_Update(voltage, Scene, 2);
-          break;
-        //未定義表示
-        case 7:
-          Oled_Update(voltage, Scene, 2);
-          break;
-        //未定義表示
-        case 8:
-          Oled_Update(voltage, Scene, 2);
-          break;
-        //未定義表示
-        case 9:
-          Oled_Update(voltage, Scene, 2);
-          break;
-        //ありえないとは思うが一応他番号になった場合にエラー表示
-        default:
-          Oled_Update(voltage, Scene, 3);
-          break;
+  if ((currentMillis = millis()) - run_prevmillis >=  10) {
+        switch (Scene) {
+          case 0:
+            Scene0();
+            break;
+          case 1:
+            Scene1();
+            break;
+          case 2:
+            Scene2();
+            break;
+          case 3:
+            Scene3();
+            break;
+          case 4:
+            Scene4();
+            break;
+          //未定義表示
+          case 5:
+            Oled_Update(voltage, Scene, 2);
+            Scene5();
+            break;
+          //未定義表示
+          case 6:
+            Oled_Update(voltage, Scene, 2);
+            break;
+          //未定義表示
+          case 7:
+            Oled_Update(voltage, Scene, 2);
+            break;
+          //未定義表示
+          case 8:
+            Oled_Update(voltage, Scene, 2);
+            break;
+          //未定義表示
+          case 9:
+            Oled_Update(voltage, Scene, 2);
+            break;
+          //ありえないとは思うが一応他番号になった場合にエラー表示
+          default:
+            Oled_Update(voltage, Scene, 3);
+            break;
+        }
+       run_prevmillis = currentMillis;
       }
    }
+   
 }

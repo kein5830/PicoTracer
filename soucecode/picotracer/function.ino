@@ -1,11 +1,13 @@
 
 /*
+---------------------------------------------------------------------
 @fn　ADコンバータ(mcp3002)の値取得関数
 @brief 2つのADコンバータの値を順番に取得する
 @param (int channel) ADコンバータのch番号 ch0 or ch1
 @param (int select) ２つ搭載しているADコンバータの指定 SELPIN1 or SELPIN2
 @return AD変換値（ラインセンサー値）
 @details 接続しているラインセンサーの値を取得する
+---------------------------------------------------------------------
  */
 int read_adc(int channel, int select) {
   int adcvalue = 0;
@@ -43,11 +45,13 @@ int read_adc(int channel, int select) {
 //タイマー割り込み関数 ここまで
 
 /*
+---------------------------------------------------------------------
 @fn　タイマー割り込み関数
 @brief タイマーに設定した周期で割り込む関数
 @param (struct repeating_timer *t) 構造体？詳細不明
 @return おそらく割り込まれて時にtrueを返すだけだと思うが未調査
 @details 現在はゴール後に一定距離走行し、停止するための距離測定に利用
+---------------------------------------------------------------------
  */
 bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
   //距離測定用
@@ -72,18 +76,20 @@ bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
 @details モーター速度をPWMで制御するためにwrap値というものが必要周波数の方がわかりやすいため
 　　　　　ユーザーからの入力は周波数とし、変換する関数で対応
  */
-float Hz_wrap(float pulsefreq){
+uint16_t Hz_wrap(float pulsefreq){
   //F=sysclock/(wrap+1)*clkdiv
   return (125000000/(pulsefreq*100))-1;
   //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
 }
 
 /*
+---------------------------------------------------------------------
 @fn　リセット関数
 @brief 実行メニューや、走行に仕様する変数をリセットする
 @param なし
 @return void
 @details 実行メニューや、走行に仕様する変数をリセットする
+---------------------------------------------------------------------
  */
 void Reset(){
   //プッシュスイッチカウント
@@ -120,12 +126,14 @@ void Reset(){
 }
 
 /*
+---------------------------------------------------------------------
 @fn　OLED表示更新関数
 @brief OLEDの表示内容を指定し、更新する
 @param (float volt) バッテリの電圧値
 @param (float runmode) 実行番号 
 @return void
 @details 実行メニューや、走行に仕様する変数をリセットする
+---------------------------------------------------------------------
  */
 void Oled_Update(float volt,int runscene,uint8_t runmode ){
   //点滅表示用処理
@@ -194,11 +202,13 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
 }
 
 /*
-@fn　走行関数Scene1
+---------------------------------------------------------------------
+@fn　走行関数Scene0
 @brief ライントレース走行
 @param なし
 @return void
 @details　PI制御　スタート時のゆっくり加速なし 最高速度450 定速
+---------------------------------------------------------------------
  */
 void Scene0() {
 
@@ -347,11 +357,13 @@ void Scene0() {
 //基本走行
 //P制御走行　カーブがきつくゲインをあげすぎるとがたがた　厳しそう
 /*
-@fn　走行関数Scene2
+---------------------------------------------------------------------
+@fn　走行関数Scene1
 @brief ライントレース走行
 @param なし
 @return void
 @details　P制御のみ　スタート時のゆっくり加速あり+0.35　最高速度850
+---------------------------------------------------------------------
  */
 void Scene1() {
   
@@ -454,7 +466,7 @@ void Scene1() {
     inputR = SP;
   }
 
-  SP=SP+0.35;
+  SP=SP + 1;
   if(SP>850.0){
     SP=850.0;
   }
@@ -500,11 +512,13 @@ void Scene1() {
 }
 
 /*
+---------------------------------------------------------------------
 @fn　走行関数Scene2
 @brief ライントレース走行
 @param なし
 @return void
 @details　PI制御　スタート時のゆっくり加速あり　+0.25 最高速度700
+---------------------------------------------------------------------
  */
 void Scene2() {
   
@@ -608,7 +622,7 @@ void Scene2() {
     inputR = SP;
   }
 
-  SP=SP+0.25;
+  SP=SP + 1;
   if(SP>700.0){
     SP=700.0;
   }
@@ -659,11 +673,13 @@ void Scene2() {
 //2023/11/04
 //完走 accelrun　検証中
 /*
+---------------------------------------------------------------------
 @fn　走行関数Scene3
 @brief ライントレース走行
 @param なし
 @return void
 @details　PI制御　スタート時のゆっくり加速あり+0.35 最高速度800
+---------------------------------------------------------------------
  */
 void Scene3() {
   
@@ -777,7 +793,7 @@ void Scene3() {
     inputR = SP;
   }
 
-  SP=SP+0.35;
+  SP=SP + 1;
   if(SP>800.0){
     SP=800.0;
   }
@@ -799,6 +815,7 @@ void Scene3() {
       ITimer0.stopTimer();
       inputL=0.0;
       inputR=0.0;
+      Reset();
       Run = 0;
     }
 
@@ -824,37 +841,37 @@ void Scene3() {
 }
 
 /*
+---------------------------------------------------------------------
 @fn　モーター動作確認用関数
 @brief モーターが加速していく
 @param なし
 @return void
 @details　ハードウェアを変更した時にモーターが動作するかを確認するようの関数
+---------------------------------------------------------------------
  */
 void Scene4() {
   //PWM
   pwm_set_wrap(pwm_slice1, Hz_wrap(Speed));
   pwm_set_wrap(pwm_slice2, Hz_wrap(Speed));
-  Speed=Speed+0.01;
+  Speed=Speed + 1;
   if(Speed>1500){
     Speed=1500;
   }
   pwm_set_enabled(pwm_slice1, true);
   pwm_set_enabled(pwm_slice2, true);
-//  Serial.print(" Sw1:");
-//  Serial.print(sw1);
-//  Serial.print(" Sw2:");
-//  Serial.print(sw2);
-//  Serial.print(" Speed:");
-//  Serial.println(Speed);
+
+
 
 }
 //テスト
 /*
+---------------------------------------------------------------------
 @fn　試験用関数
 @brief 新機能などの試験用
 @param なし
 @return void
 @details　新機能などを軽く試すための場所11/21現在は未使用
+---------------------------------------------------------------------
  */
 void Scene5() {
 //  int step = 0;
