@@ -117,18 +117,11 @@ float pgain = 0.4;
 float dgain = 0;
 //Iゲイン
 float igain = 0.0004;
-//goalセンサーカウント
+//goalセンサカウント
 static int count = 0, cross = 0;
 static bool tmp = 0, tmpc = 0;
 // 電圧値監視
 float voltage = 0.0;
-
-//センサー値のログ保存用変数
-uint16_t LL_log[5000];
-uint16_t RR_log[5000];
-uint16_t SS_log[5000];
-uint16_t TT_log[5000];
-uint16_t GG_log[5000];
 
 //経過時刻変数
 unsigned long currentMillis = 0;
@@ -163,22 +156,40 @@ void Reset();
 //周波数、wrap値変換
 uint16_t Hz_wrap(float pulsefreq);
 
-//ログ保存用構造体
-//typedef struct {
-//
-//
-//}LOG_t
-//
-//LOG_t logdata;
-
+//----------------------------------------------------------
+// setup関数　　起動時に実行
+//----------------------------------------------------------
 void setup() {
+  
+  //ログ用構造体定義
+  typedef struct {
+    //ライン検知センサ
+    uint16_t Curve_log;
+    uint16_t LL_log;
+    uint16_t L_log;
+    uint16_t R_log;
+    uint16_t RR_log;
+    uint16_t Goal_log;
+    //モーター出力
+    uint16_t R_motor_log;
+    uint16_t L_motor_log;
+   }Log;
+  //宣言
+  Log data_log[10000];
+  
   //ログ保存用変数の初期化　0埋め
-  memset(LL_log, 0, sizeof(LL_log));
-  memset(RR_log, 0, sizeof(RR_log));
-  memset(SS_log, 0, sizeof(SS_log));
-  memset(TT_log, 0, sizeof(TT_log));
-  memset(GG_log, 0, sizeof(GG_log));
-
+//  for (int i = 0; i < (sizeof(data_log) / sizeof(data_log[0])); i++)
+//    {
+//        data_log[i].Curve_log = 1;
+//        data_log[i].LL_log = 1;
+//        data_log[i].L_log = 1;
+//        data_log[i].R_log = 1;
+//        data_log[i].RR_log = 1;
+//        data_log[i].Goal_log = 1;
+//        data_log[i].R_motor_log = 1;
+//        data_log[i].L_motor_log = 1;    
+//    }
+  
   //マイコン電源確認用LEDの点灯
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
