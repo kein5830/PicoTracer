@@ -1,4 +1,6 @@
 
+//.h
+#include "types.h"
 /*
 ---------------------------------------------------------------------
 @fn　ADコンバータ(mcp3002)の値取得関数
@@ -201,23 +203,6 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
   display.display();  // 表示実行
 }
 
-
-/*
----------------------------------------------------------------------
-@fn　センサ値、モータ出力値取得
-@brief　走行中のセンサ値、モータ出力値取得取得
-@param なし
-@return void
-@details　走行中のラインセンサ、モータ出力値を毎周期ごとに配列に格納
----------------------------------------------------------------------
- */
-void Log(){
-  uint16_t cou = 0;
-  
-  
-  }
-
-
 /*
 ---------------------------------------------------------------------
 @fn　走行関数Scene0
@@ -228,7 +213,8 @@ void Log(){
 ---------------------------------------------------------------------
  */
 void Scene0() {
-
+//  //ログ保存用構造体　宣言
+//  static Log data_log[10000];
   if(c == 0){
     //基準速度
     SP = 450;
@@ -242,26 +228,30 @@ void Scene0() {
     c=1;
   }
 
-
+//センサー配置修正12/17
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);
-
-//  Serial.print(Curve, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorLL, DEC)
-//  Serial.print(" ");
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" "); 
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorGoal, DEC);
-//  Serial.print(" ");
+  sensorLL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN1);
+  sensorR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN2);
+  sensorGoal = analogRead(GOALSENSOR);   
+  
+  Serial.print(Curve, DEC);
+  Serial.print(" ");
+  Serial.print(sensorLL, DEC);
+  Serial.print(" ");
+  Serial.print(sensorL, DEC);
+  Serial.print(" "); 
+  Serial.print(sensorR, DEC);
+  Serial.print(" ");
+  Serial.print(sensorRR, DEC);
+  Serial.print(" ");
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  Serial.print(count, DEC);
+  Serial.print(" ");
+  Serial.print(log_count, DEC);
+  Serial.println(" ");
 
   //ゴールセンサーカウンタ
   if (tmp == 0 && sensorGoal < 100 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
@@ -283,7 +273,7 @@ void Scene0() {
     tmpc = 0;
   }
   //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
+  if (count == 2) { 
     if (b == 0) {
       //タイマースタート処理
       ITimer0.stopTimer();
@@ -291,8 +281,6 @@ void Scene0() {
       Step = 0;
     }
     b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
     
   }
   if (distance > 100) {  //停止位置は試走会で調整
@@ -349,26 +337,20 @@ void Scene0() {
   pwm_set_enabled(pwm_slice1, true);
   pwm_set_enabled(pwm_slice2, true);
 
-
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(tmp);
-//  Serial.print(" tmpc:");
-//  Serial.println(tmpc);
-//  
+  //ログ保存(スタートラインを越えてからゴールするまで)
+  if(count>=1 && count < 2){
+    data_log[log_count].Curve_log = Curve;
+    data_log[log_count].LL_log = sensorLL;
+    data_log[log_count].L_log = sensorL;
+    data_log[log_count].R_log = sensorR;
+    data_log[log_count].RR_log = sensorRR;
+    data_log[log_count].Goal_log = sensorGoal;
+    data_log[log_count].R_motor_log = inputR;
+    data_log[log_count].L_motor_log = inputL;
+    
+    log_count++;  
+    }
+    
 }
 
 //基本走行
@@ -891,6 +873,7 @@ void Scene4() {
 ---------------------------------------------------------------------
  */
 void Scene5() {
+  static uint16_t cou = 0;
 //  int step = 0;
 //  int ct=0,mode = 0; 
   //int deg[45] = {49,48,}
@@ -959,5 +942,27 @@ void Scene5() {
 //  Serial.print(sensorGoal, DEC);
 //  Serial.println(" ");
   // millis()
-  
+  Serial.print(data_log[cou].Curve_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].LL_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].L_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].R_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].RR_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].Goal_log);
+  Serial.print(",");
+  Serial.print(data_log[cou].R_motor_log);
+  Serial.print(",");
+  Serial.println(data_log[cou].L_motor_log);
+  cou++;
+  if(cou > log_count){
+      Reset();
+      Run = 0;
+      log_count = 0;
+      cou = 0;
+    }
+
 }

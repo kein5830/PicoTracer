@@ -135,6 +135,20 @@ static unsigned long run_prevmillis = 0;
 //Scene4用スピード記録変数
 static float Speed = 0.0;
 
+//ログ保存用構造体定義
+//  typedef struct {
+//    //ライン検知センサ
+//    uint16_t Curve_log;
+//    uint16_t LL_log;
+//    uint16_t L_log;
+//    uint16_t R_log;
+//    uint16_t RR_log;
+//    uint16_t Goal_log;
+//    //モーター出力
+//    uint16_t R_motor_log;
+//    uint16_t L_motor_log;
+//   }Log;
+   static uint16_t log_count = 0;
 //----------------------------------------------------------
 //　関数プロトタイプ宣言
 //----------------------------------------------------------
@@ -161,21 +175,8 @@ uint16_t Hz_wrap(float pulsefreq);
 //----------------------------------------------------------
 void setup() {
   
-  //ログ用構造体定義
-  typedef struct {
-    //ライン検知センサ
-    uint16_t Curve_log;
-    uint16_t LL_log;
-    uint16_t L_log;
-    uint16_t R_log;
-    uint16_t RR_log;
-    uint16_t Goal_log;
-    //モーター出力
-    uint16_t R_motor_log;
-    uint16_t L_motor_log;
-   }Log;
-  //宣言
-  Log data_log[10000];
+  //ログ保存用構造体　宣言
+//  Log data_log[10000];
   
   //ログ保存用変数の初期化　0埋め
 //  for (int i = 0; i < (sizeof(data_log) / sizeof(data_log[0])); i++)
@@ -261,9 +262,8 @@ void setup() {
   delay(100);
 
   // ブザー鳴らす
-  digitalWrite(BUZZER, HIGH);
+  tone(BUZZER,1046,500);
   delay(500);
-  digitalWrite(BUZZER, LOW);
   //モード選択待機に移行
 }
 
@@ -289,7 +289,7 @@ void loop() {
   if(Run == 0){
     //バッテリー電圧更新 500ms
     if ((currentMillis = millis()) - volt_prevmillis >=  500) {
-      voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.1);
+      voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.3);//値修正
       volt_prevmillis = currentMillis;
     }
   
