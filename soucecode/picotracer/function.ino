@@ -247,7 +247,7 @@ void Scene0() {
   Serial.print(sensorRR, DEC);
   Serial.print(" ");
   Serial.print(sensorGoal, DEC);
-　Serial.print(" ");
+  Serial.print(" ");
   Serial.print(P, DEC);
   Serial.print(" ");
   Serial.print(I, DEC);
