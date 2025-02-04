@@ -247,6 +247,10 @@ void Scene0() {
   Serial.print(sensorRR, DEC);
   Serial.print(" ");
   Serial.print(sensorGoal, DEC);
+　Serial.print(" ");
+  Serial.print(P, DEC);
+  Serial.print(" ");
+  Serial.print(I, DEC);
   Serial.print(" ");
   Serial.print(count, DEC);
   Serial.print(" ");
@@ -302,6 +306,7 @@ void Scene0() {
   //I制御
   I = sum * igain;
   //入力速度にPID制御値を代入
+  //Dを-にしてPで発生するオーバーシュートを抑える形にすることも検討
   inputL = SP + (P + D + I);
   inputR = SP - (P + D + I);
 
@@ -379,10 +384,10 @@ void Scene1() {
     c = 1;
   }
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN1);
+  sensorR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN2);
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -535,10 +540,10 @@ void Scene2() {
   }
 
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN1);
+  sensorR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN2);
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -956,7 +961,9 @@ void Scene5() {
   Serial.print(",");
   Serial.print(data_log[cou].R_motor_log);
   Serial.print(",");
-  Serial.println(data_log[cou].L_motor_log);
+  Serial.print(data_log[cou].L_motor_log);
+  Serial.print(",");
+  Serial.println(cou);  
   cou++;
   if(cou > log_count){
       Reset();
