@@ -1,6 +1,7 @@
-
-//.h
+//構造体インクルード
 #include "types.h"
+//flash メモリ
+#include <hardware/flash.h>
 /*
 ---------------------------------------------------------------------
 @fn　ADコンバータ(mcp3002)の値取得関数
@@ -43,8 +44,6 @@ int read_adc(int channel, int select) {
   digitalWrite(select, HIGH);  //turn off device
   return adcvalue;
 }
-
-//タイマー割り込み関数 ここまで
 
 /*
 ---------------------------------------------------------------------
@@ -205,6 +204,75 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
 
 /*
 ---------------------------------------------------------------------
+@fn　Flashメモリへ書き込み処理（中）
+@brief 
+@param 
+@param 
+@return 
+@details 
+---------------------------------------------------------------------
+ */
+
+/*W25Q16JVのBlock12のセクタ0の先頭アドレス = 0x2c0000
+ブロック番号  開始アドレス  終了アドレス
+//1走目
+20  0x2C0000  0x2FFFFF
+21  0x300000  0x33FFFF
+22  0x340000  0x37FFFF
+23  0x380000  0x3BFFFF
+//2走目
+24  0x3C0000  0x3FFFFF
+25  0x400000  0x43FFFF
+26  0x440000  0x47FFFF
+27  0x480000  0x4BFFFF
+//3走目
+28  0x4C0000  0x4FFFFF
+29  0x500000  0x53FFFF
+30  0x540000  0x57FFFF
+31  0x580000  0x5BFFFF
+*/
+//工事中
+//const uint32_t FLASH_TARGET_OFFSET[3] = {0x2c0000,0x3C0000,0x4C0000};
+//
+//uint8_t Write_data_temp1=0,Write_data_temp2=0;
+//uint8_t Write_data[FLASH_PAGE_SIZE];
+//uint16_t i,count=0,temp=0; 
+//
+//bool Flash_Write(){
+//      for(i=0;i<=log_count;i++){
+//          //値を取得して、分割して代入
+//          if((i+1)%2 != 0){
+//            //奇数
+//            Write_data_temp1=data_log[count].Curve_log >> 8;
+//            Write_data[i]=Write_data_temp1;
+//          }else{
+//            //偶数
+//            Write_data_temp2=data_log[count].Curve_log - (Write_data_temp1<<8);
+//            Write_data[i]=Write_data_temp2;
+//            count++;
+//          }
+//          //256Byteごとにフラッシュに書き込み処理を実行 
+//          if((i+1)%256 == 0){        
+//              // 割り込み無効にする
+//              uint32_t ints = save_and_disable_interrupts();
+//              // Flash消去。
+//              //  消去単位はflash.hで定義されている FLASH_SECTOR_SIZE(4096Byte) の倍数とする
+//              flash_range_erase(FLASH_TARGET_OFFSET[0], FLASH_SECTOR_SIZE);
+//              // Flash書き込み。
+//              //  書込単位はflash.hで定義されている FLASH_PAGE_SIZE(256Byte) の倍数とする
+//              flash_range_program(FLASH_TARGET_OFFSET[0], write_data_temp, FLASH_PAGE_SIZE);
+//              // 割り込みフラグを戻す
+//              restore_interrupts(ints);
+//          }
+//          
+//      }
+//      //log_count分終了したのでフラッシュに書きこみ処理を実行
+//      
+//    return 1;
+//  }
+
+/*
+---------------------------------------------------------------------
 @fn　走行関数Scene0
 @brief ライントレース走行
 @param なし
@@ -350,8 +418,8 @@ void Scene0() {
     data_log[log_count].R_log = sensorR;
     data_log[log_count].RR_log = sensorRR;
     data_log[log_count].Goal_log = sensorGoal;
-    data_log[log_count].R_motor_log = inputR;
-    data_log[log_count].L_motor_log = inputL;
+//    data_log[log_count].R_motor_log = inputR;
+//    data_log[log_count].L_motor_log = inputL;
     
     log_count++;  
     }
@@ -959,10 +1027,10 @@ void Scene5() {
   Serial.print(",");
   Serial.print(data_log[cou].Goal_log);
   Serial.print(",");
-  Serial.print(data_log[cou].R_motor_log);
-  Serial.print(",");
-  Serial.print(data_log[cou].L_motor_log);
-  Serial.print(",");
+//  Serial.print(data_log[cou].R_motor_log);
+//  Serial.print(",");
+//  Serial.print(data_log[cou].L_motor_log);
+//  Serial.print(",");
   Serial.println(cou);  
   cou++;
   if(cou > log_count){
