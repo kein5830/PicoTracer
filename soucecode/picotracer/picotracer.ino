@@ -323,6 +323,12 @@ void loop() {
   //　実行モードに遷移時に1回だけ実行する処理
   //----------------------------------------------------------
     if (one == 0) {
+        tone(BUZZER,1446,50);
+        delay(100);
+        tone(BUZZER,1446,50);
+        delay(100);
+        tone(BUZZER,1446,50);
+        delay(500);
         //モーター電源オン
         digitalWrite(ENABLE_L, LOW);
         digitalWrite(ENABLE_R, LOW);

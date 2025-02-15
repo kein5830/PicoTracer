@@ -252,6 +252,8 @@ void Scene0() {
     tmp = 1;
     count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
     cross = cross - cross;
+    //BUZZER入れたが音小さくて聞こえない
+//    tone(BUZZER,1178,100);
   }
   if (sensorGoal > 900) {
     tmp = 0;
@@ -260,6 +262,8 @@ void Scene0() {
   //ラインクロスカウンタ
   if (tmpc == 0 &&   sensorL < 200 && sensorR < 200 && sensorLL < 200 && sensorRR < 200) {  //速度によって調整
     cross++;
+    //BUZZER入れたが音小さくて聞こえない
+//    tone(BUZZER,1234,100);
     tmpc = 1;
   }
   if (sensorLL > 500 && sensorRR > 500) {
@@ -281,7 +285,8 @@ void Scene0() {
   if (distance > 100) {  //停止位置は試走会で調整
       ITimer0.stopTimer();
       Reset();
-      Run = 0; 
+      Run = 0;
+      tone(BUZZER,1446,1000); 
     }
 
   //今回の差分
