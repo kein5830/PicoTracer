@@ -261,6 +261,9 @@ void loop() {
   //----------------------------------------------------------
   //待機モード時のみ実行
   if(Run == 0){
+      //PWM停止　Resetで停止しているはずだが、どこかでONになってるみたいなので待機中は常に停止
+      pwm_set_enabled(pwm_slice1, false);
+      pwm_set_enabled(pwm_slice2, false);
     //バッテリー電圧更新 500ms
     if ((currentMillis = millis()) - volt_prevmillis >=  500) {
       voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.3);//値修正
@@ -326,6 +329,7 @@ void loop() {
         //モーター電源オン
         digitalWrite(ENABLE_L, LOW);
         digitalWrite(ENABLE_R, LOW);
+
         //Running...表示させるために1回ディスプレイを更新
         Oled_Update(voltage, Scene, Run);
         one = 1; 
