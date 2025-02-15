@@ -275,30 +275,33 @@ void loop() {
   }
   //プッシュスイッチONOFF検知 10ms
   if ((currentMillis = millis()) - button_prevmillis >=  50) {
-    if(Run == 0){
-      sw1 = digitalRead(upswitch);
-    }
+    sw1 = digitalRead(upswitch);
     sw2 = digitalRead(downswitch);
     button_prevmillis = currentMillis;
   }
   //----------------------------------------------------------
   //　イベント処理
   //----------------------------------------------------------
-  if (sw1 == 1 && temp1 == 0) {
-    Scene++;
-    //Scene：0~9まで
-    if (Scene == 10) {
-      Scene = 0;
+  //Sceneの遷移は待機モードの時のみ可能
+  if(Run == 0){
+    //Scene番号をボタンを押すたびに次ぎの番号へ遷移させていく処理
+    if (sw1 == 1 && temp1 == 0) {
+      Scene++;
+      //Scene：0~9まで
+      if (Scene == 10) {
+        Scene = 0;
+      }
+      temp1 = 1;
     }
-    temp1 = 1;
   }
-  
+  //チャタリング防止処理
   if (sw1 == 0 && temp1 == 1) {
     temp1 = 0;
   }
   if (sw2 == 0 && temp2 == 1) {
     temp2 = 0;
   }
+  
   //実行、停止
   if (sw2 == 1 && temp2 == 0) {
     Run = !Run;
