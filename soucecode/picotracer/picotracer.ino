@@ -53,6 +53,9 @@
 //ブザーピン
 #define BUZZER 4
 
+//3.3V電源検知
+#define Power_Det 18
+
 
 // I2Cに接続されたSSD1306用ライブラリの実態「display」の宣言
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
@@ -117,18 +120,11 @@ float pgain = 0.4;
 float dgain = 0;
 //Iゲイン
 float igain = 0.0004;
-//goalセンサーカウント
+//goalセンサカウント
 static int count = 0, cross = 0;
 static bool tmp = 0, tmpc = 0;
 // 電圧値監視
 float voltage = 0.0;
-
-//センサー値のログ保存用変数
-uint16_t LL_log[5000];
-uint16_t RR_log[5000];
-uint16_t SS_log[5000];
-uint16_t TT_log[5000];
-uint16_t GG_log[5000];
 
 //経過時刻変数
 unsigned long currentMillis = 0;
@@ -163,40 +159,48 @@ void Reset();
 //周波数、wrap値変換
 uint16_t Hz_wrap(float pulsefreq);
 
-//ログ保存用構造体
-//typedef struct {
-//
-//
-//}LOG_t
-//
-//LOG_t logdata;
-
+//----------------------------------------------------------
+// setup関数　　起動時に実行
+//----------------------------------------------------------
 void setup() {
-  //ログ保存用変数の初期化　0埋め
-  memset(LL_log, 0, sizeof(LL_log));
-  memset(RR_log, 0, sizeof(RR_log));
-  memset(SS_log, 0, sizeof(SS_log));
-  memset(TT_log, 0, sizeof(TT_log));
-  memset(GG_log, 0, sizeof(GG_log));
-
+ 
+  //3.3V電源検知
+  pinMode(Power_Det, INPUT);
   //マイコン電源確認用LEDの点灯
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   //メニュー選択スイッチ up:前側　down:後ろ側
   pinMode(upswitch, INPUT_PULLDOWN);
   pinMode(downswitch, INPUT_PULLDOWN);
-  //AD変換ピン
-  pinMode(SELPIN1, OUTPUT);
-  pinMode(SELPIN2, OUTPUT);
-  pinMode(DATAOUT, OUTPUT);
-  pinMode(DATAIN, INPUT);
-  pinMode(SPICLOCK, OUTPUT);
 
-  digitalWrite(SELPIN1, HIGH);
-  digitalWrite(SELPIN2, HIGH);
-  digitalWrite(DATAOUT, LOW);
-  digitalWrite(SPICLOCK, LOW);
-
+  if(digitalRead(Power_Det)){
+    //AD変換ピン
+    pinMode(SELPIN1, OUTPUT);
+    pinMode(SELPIN2, OUTPUT);
+    pinMode(DATAOUT, OUTPUT);
+    pinMode(DATAIN, INPUT);
+    pinMode(SPICLOCK, OUTPUT);
+    digitalWrite(SELPIN1, HIGH);//
+    digitalWrite(SELPIN2, HIGH);//両方LOWにすると2.2V 0.9Vまで下がる
+    digitalWrite(DATAOUT, LOW);
+    digitalWrite(SPICLOCK, LOW);
+  
+    //ディスプレイ設定　初期表示
+    //SSD1306本体初期化
+    Wire.setSDA(16);  // I2C0 SDA 端子番号設定
+    Wire.setSCL(17);  // I2C0 SCL 端子番号設定
+    Wire.begin();     // I2C通信開始設定(SDA,SDL)
+    // OLED初期設定
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+      Serial.println(F("SSD1306:0 allocation failed"));
+    }else{
+    // OLED表示設定 文字色
+    display.setTextColor(SSD1306_WHITE); 
+    // ディスプレイ表示
+    Oled_Update(0.0, 0, 0);
+    delay(100);
+    }
+  }
   //モータードライバピン
   pinMode(CLOCK_L, OUTPUT);   //パルス出力ピン
   pinMode(CWCCW_L, OUTPUT);   //モータ回転方向出力ピン
@@ -205,8 +209,6 @@ void setup() {
   pinMode(CWCCW_R, OUTPUT);   //モータ回転方向出力ピン
   pinMode(ENABLE_R, OUTPUT);  //モーター電源ピン
 
-  //ブザー
-  pinMode(BUZZER, OUTPUT);
 
   //回転方向制御
   digitalWrite(CWCCW_L, HIGH);
@@ -232,27 +234,10 @@ void setup() {
   pwm_set_clkdiv(pwm_slice1, 100.0);
   pwm_set_clkdiv(pwm_slice2, 100.0);
 
-  //ディスプレイ設定　初期表示
-  //SSD1306本体初期化
-  Wire.setSDA(16);  // I2C0 SDA 端子番号設定
-  Wire.setSCL(17);  // I2C0 SCL 端子番号設定
-  Wire.begin();     // I2C通信開始設定(SDA,SDL)
-  // OLED初期設定
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306:0 allocation failed"));
-    for (;;); // エラーなら無限ループ
-  }
-  // OLED表示設定 文字色
-  display.setTextColor(SSD1306_WHITE);
-
-//  // ディスプレイ表示
-  Oled_Update(0.0, 0, 0);
-  delay(100);
 
   // ブザー鳴らす
-  digitalWrite(BUZZER, HIGH);
+  tone(BUZZER,1046,500);
   delay(500);
-  digitalWrite(BUZZER, LOW);
   //モード選択待機に移行
 }
 
@@ -278,7 +263,7 @@ void loop() {
   if(Run == 0){
     //バッテリー電圧更新 500ms
     if ((currentMillis = millis()) - volt_prevmillis >=  500) {
-      voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.1);
+      voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.3);//値修正
       volt_prevmillis = currentMillis;
     }
   
@@ -343,7 +328,7 @@ void loop() {
         one = 1; 
       }
   //----------------------------------------------------------
-  //　実行関数
+  //　実行関数 周期：10ms
   //----------------------------------------------------------
   if ((currentMillis = millis()) - run_prevmillis >=  10) {
         switch (Scene) {
