@@ -227,10 +227,10 @@ void Scene0() {
 
 
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);//sensor ll
+  sensorL = read_adc(ch0, SELPIN1);//sensor l
+  sensorR = read_adc(ch1, SELPIN2);//sensor r
+  sensorRR = read_adc(ch0, SELPIN2);//sensor rr
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -380,10 +380,10 @@ void Scene1() {
     c = 1;
   }
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);//sensor ll
+  sensorL = read_adc(ch0, SELPIN1);//sensor l
+  sensorR = read_adc(ch1, SELPIN2);//sensor r
+  sensorRR = read_adc(ch0, SELPIN2);//sensor rr
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -536,10 +536,10 @@ void Scene2() {
   }
 
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);//sensor ll
+  sensorL = read_adc(ch0, SELPIN1);//sensor l
+  sensorR = read_adc(ch1, SELPIN2);//sensor r
+  sensorRR = read_adc(ch0, SELPIN2);//sensor rr
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -697,10 +697,10 @@ void Scene3() {
   }
          
   Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorLL = read_adc(ch1, SELPIN1);//sensor ll
+  sensorL = read_adc(ch0, SELPIN1);//sensor l
+  sensorR = read_adc(ch1, SELPIN2);//sensor r
+  sensorRR = read_adc(ch0, SELPIN2);//sensor rr
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
