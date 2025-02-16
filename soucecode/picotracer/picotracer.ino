@@ -90,6 +90,9 @@ int sensorR = 0;
 int sensorRR = 0;
 int sensorGoal = 0;
 int Curve = 0;
+
+uint16_t Add_SensorL = 0;
+uint16_t Add_SensorR = 0;
 //ステップ数計測変数
 unsigned int Step = 0;
 float distance = 0.0;

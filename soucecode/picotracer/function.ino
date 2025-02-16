@@ -216,11 +216,11 @@ void Scene0() {
     //基準速度
     SP = 450;
     //Pゲイン
-    pgain = 0.35;
+    pgain = 0.25;
     //Dゲイン
     dgain = 0;
     //Iゲイン
-    igain = 0.0005;
+    igain = 0.0;
     // 1回しか入らないようcを1にする
     c=1;
   }
@@ -228,9 +228,9 @@ void Scene0() {
 
   Curve = analogRead(Curve_Sensor);
   sensorLL = read_adc(ch1, SELPIN1);//sensor ll
-  sensorL = read_adc(ch0, SELPIN1);//sensor l
+  sensorL = read_adc(ch0, SELPIN1)-10;//sensor l
   sensorR = read_adc(ch1, SELPIN2);//sensor r
-  sensorRR = read_adc(ch0, SELPIN2);//sensor rr
+  sensorRR = read_adc(ch0, SELPIN2)+20;//sensor rr
   sensorGoal = analogRead(GOALSENSOR);
 
 //  Serial.print(Curve, DEC);
@@ -289,8 +289,11 @@ void Scene0() {
       tone(BUZZER,1446,1000); 
     }
 
+  Add_SensorL = sensorL + sensorLL;
+  Add_SensorR = sensorR + sensorRR;
+
   //今回の差分
-  diff = sensorL - sensorR - bias;  //biasは試走会で調整
+  diff = Add_SensorL - Add_SensorR - bias;  //biasは試走会で調整
 
   //  Serial.print("diff:");
   //  Serial.print(diff);
@@ -338,24 +341,24 @@ void Scene0() {
   pwm_set_enabled(pwm_slice2, true);
 
 
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(tmp);
-//  Serial.print(" tmpc:");
-//  Serial.println(tmpc);
+ Serial.print(" P:");
+ Serial.print(P);
+ Serial.print(" D:");
+ Serial.print(D);
+ Serial.print(" I:");
+ Serial.print(I);
+ Serial.print(" inputL:");
+ Serial.print(inputL);
+ Serial.print(" inputR:");
+ Serial.print(inputR);
+ Serial.print(" count:");
+ Serial.print(count);
+ Serial.print(" cross:");
+ Serial.print(cross);
+ Serial.print(" tmp:");
+ Serial.print(tmp);
+ Serial.print(" tmpc:");
+ Serial.println(tmpc);
 //  
 }
 
@@ -892,6 +895,30 @@ if(sw1 == 1) {
   delay(1000);
 }
 
+//ゴールセンサーカウンタ
+if (tmp == 0 && sensorGoal < 100 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
+  count++;
+  tmp = 1;
+  count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
+  cross = cross - cross;
+  //BUZZER入れたが音小さくて聞こえない
+//    tone(BUZZER,1178,100);
+}
+if (sensorGoal > 900) {
+  tmp = 0;
+}
+
+  //ラインクロスカウンタ
+if (tmpc == 0 &&   sensorL < 200 && sensorR < 200 && sensorLL < 200 && sensorRR < 200) {  //速度によって調整
+  cross++;
+  //BUZZER入れたが音小さくて聞こえない
+//    tone(BUZZER,1234,100);
+  tmpc = 1;
+}
+if (sensorLL > 500 && sensorRR > 500) {
+  tmpc = 0;
+}
+
 if(sensor_out==true){
   Curve = analogRead(Curve_Sensor);
   Serial.print(Curve, DEC);
@@ -899,17 +926,21 @@ if(sensor_out==true){
   sensorLL = read_adc(ch1, SELPIN2);//sensor ll
   Serial.print(sensorLL, DEC);
   Serial.print(" ");
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
+  sensorL = read_adc(ch0, SELPIN2)-10;//sensor l
   Serial.print(sensorL, DEC);
   Serial.print(" ");
   sensorR = read_adc(ch1, SELPIN1);//sensor r
   Serial.print(sensorR, DEC);
   Serial.print(" ");
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
+  sensorRR = read_adc(ch0, SELPIN1)+15;//sensor rr
   Serial.print(sensorRR, DEC);
   Serial.print(" ");
   sensorGoal = analogRead(GOALSENSOR);
   Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  Serial.print(count, DEC);
+  Serial.print(" ");
+  Serial.print(cross, DEC);
   Serial.println(" ");
 }
   
