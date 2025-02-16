@@ -1,4 +1,7 @@
-
+//構造体インクルード
+#include "types.h"
+//flash メモリ
+#include <hardware/flash.h>
 /*
 ---------------------------------------------------------------------
 @fn　ADコンバータ(mcp3002)の値取得関数
@@ -41,8 +44,6 @@ int read_adc(int channel, int select) {
   digitalWrite(select, HIGH);  //turn off device
   return adcvalue;
 }
-
-//タイマー割り込み関数 ここまで
 
 /*
 ---------------------------------------------------------------------
@@ -203,6 +204,75 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
 
 /*
 ---------------------------------------------------------------------
+@fn　Flashメモリへ書き込み処理（中）
+@brief 
+@param 
+@param 
+@return 
+@details 
+---------------------------------------------------------------------
+ */
+
+/*W25Q16JVのBlock12のセクタ0の先頭アドレス = 0x2c0000
+ブロック番号  開始アドレス  終了アドレス
+//1走目
+20  0x2C0000  0x2FFFFF
+21  0x300000  0x33FFFF
+22  0x340000  0x37FFFF
+23  0x380000  0x3BFFFF
+//2走目
+24  0x3C0000  0x3FFFFF
+25  0x400000  0x43FFFF
+26  0x440000  0x47FFFF
+27  0x480000  0x4BFFFF
+//3走目
+28  0x4C0000  0x4FFFFF
+29  0x500000  0x53FFFF
+30  0x540000  0x57FFFF
+31  0x580000  0x5BFFFF
+*/
+//工事中
+//const uint32_t FLASH_TARGET_OFFSET[3] = {0x2c0000,0x3C0000,0x4C0000};
+//
+//uint8_t Write_data_temp1=0,Write_data_temp2=0;
+//uint8_t Write_data[FLASH_PAGE_SIZE];
+//uint16_t i,count=0,temp=0; 
+//
+//bool Flash_Write(){
+//      for(i=0;i<=log_count;i++){
+//          //値を取得して、分割して代入
+//          if((i+1)%2 != 0){
+//            //奇数
+//            Write_data_temp1=data_log[count].Curve_log >> 8;
+//            Write_data[i]=Write_data_temp1;
+//          }else{
+//            //偶数
+//            Write_data_temp2=data_log[count].Curve_log - (Write_data_temp1<<8);
+//            Write_data[i]=Write_data_temp2;
+//            count++;
+//          }
+//          //256Byteごとにフラッシュに書き込み処理を実行 
+//          if((i+1)%256 == 0){        
+//              // 割り込み無効にする
+//              uint32_t ints = save_and_disable_interrupts();
+//              // Flash消去。
+//              //  消去単位はflash.hで定義されている FLASH_SECTOR_SIZE(4096Byte) の倍数とする
+//              flash_range_erase(FLASH_TARGET_OFFSET[0], FLASH_SECTOR_SIZE);
+//              // Flash書き込み。
+//              //  書込単位はflash.hで定義されている FLASH_PAGE_SIZE(256Byte) の倍数とする
+//              flash_range_program(FLASH_TARGET_OFFSET[0], write_data_temp, FLASH_PAGE_SIZE);
+//              // 割り込みフラグを戻す
+//              restore_interrupts(ints);
+//          }
+//          
+//      }
+//      //log_count分終了したのでフラッシュに書きこみ処理を実行
+//      
+//    return 1;
+//  }
+
+/*
+---------------------------------------------------------------------
 @fn　走行関数Scene0
 @brief ライントレース走行
 @param なし
@@ -211,7 +281,8 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
 ---------------------------------------------------------------------
  */
 void Scene0() {
-
+//  //ログ保存用構造体　宣言
+//  static Log data_log[10000];
   if(c == 0){
     //基準速度
     SP = 450;
@@ -225,7 +296,7 @@ void Scene0() {
     c=1;
   }
 
-
+//センサー配置修正12/17
   Curve = analogRead(Curve_Sensor);
   sensorLL = read_adc(ch1, SELPIN1);//sensor ll
   sensorL = read_adc(ch0, SELPIN1)-10;//sensor l
@@ -270,7 +341,7 @@ void Scene0() {
     tmpc = 0;
   }
   //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
+  if (count == 2) { 
     if (b == 0) {
       //タイマースタート処理
       ITimer0.stopTimer();
@@ -278,8 +349,6 @@ void Scene0() {
       Step = 0;
     }
     b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
     
   }
   if (distance > 100) {  //停止位置は試走会で調整
@@ -305,6 +374,7 @@ void Scene0() {
   //I制御
   I = sum * igain;
   //入力速度にPID制御値を代入
+  //Dを-にしてPで発生するオーバーシュートを抑える形にすることも検討
   inputL = SP + (P + D + I);
   inputR = SP - (P + D + I);
 
@@ -340,26 +410,20 @@ void Scene0() {
   pwm_set_enabled(pwm_slice1, true);
   pwm_set_enabled(pwm_slice2, true);
 
-
- Serial.print(" P:");
- Serial.print(P);
- Serial.print(" D:");
- Serial.print(D);
- Serial.print(" I:");
- Serial.print(I);
- Serial.print(" inputL:");
- Serial.print(inputL);
- Serial.print(" inputR:");
- Serial.print(inputR);
- Serial.print(" count:");
- Serial.print(count);
- Serial.print(" cross:");
- Serial.print(cross);
- Serial.print(" tmp:");
- Serial.print(tmp);
- Serial.print(" tmpc:");
- Serial.println(tmpc);
-//  
+  //ログ保存(スタートラインを越えてからゴールするまで)
+  if(count>=1 && count < 2){
+    data_log[log_count].Curve_log = Curve;
+    data_log[log_count].LL_log = sensorLL;
+    data_log[log_count].L_log = sensorL;
+    data_log[log_count].R_log = sensorR;
+    data_log[log_count].RR_log = sensorRR;
+    data_log[log_count].Goal_log = sensorGoal;
+//    data_log[log_count].R_motor_log = inputR;
+//    data_log[log_count].L_motor_log = inputL;
+    
+    log_count++;  
+    }
+    
 }
 
 //基本走行
