@@ -123,9 +123,9 @@ float pgain = 0.4;
 float dgain = 0;
 //Iゲイン
 float igain = 0.0004;
-//goalセンサカウント
+//センサカウント
 static int count = 0, cross = 0;
-static bool tmp = 0, tmpc = 0;
+static bool tmp = 0, tmpc = 0,curve_count=0;
 // 電圧値監視
 float voltage = 0.0;
 
@@ -379,12 +379,11 @@ void loop() {
             break;
           //未定義表示
           case 5:
-            Oled_Update(voltage, Scene, 2);
             Scene5();
             break;
           //未定義表示
           case 6:
-            Oled_Update(voltage, Scene, 2);
+            Scene6();
             break;
           //未定義表示
           case 7:
