@@ -79,7 +79,11 @@ bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
  */
 uint16_t Hz_wrap(float pulsefreq){
   //F=sysclock/(wrap+1)*clkdiv
-  return (125000000/(pulsefreq*100))-1;
+  uint32_t Wrap =(125000000/(pulsefreq*2*100))-1;
+  if(Wrap > 65535){
+    Wrap = 65535;
+  }  
+  return Wrap;
   //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
 }
 
