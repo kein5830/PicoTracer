@@ -69,18 +69,54 @@ bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
   return true;
 }
 
+
 /*
+---------------------------------------------------------------------
+@fn　周波数＿周期変換関数
+@brief ステッピングモータ速度用の周波数を周期に変換する関数
+@param 周波数（ステッピングモータの速度）
+@return 周期（タイマ関数への入力専用）
+@details// HIGH/LOW 1サイクルあたり
+  //?はif文と同じ　freq > 0なら1000000.0 / (freq * 2) 走じゃないなら 1000000を返す
+  //1000000.0 / (freq * 2) 　1000000.0はs -> us変換　freq * 2は パルス波のHIGHとLOWの２個分があるためその分の計算 　
+---------------------------------------------------------------------
+ */
+unsigned long frequencyToInterval(float freq) {
+  return (freq > 0) ? (1000000.0 / (freq * 2)) : 1000000;  
+}
+
+/*
+---------------------------------------------------------------------
 @fn　周波数からwrap値に変換する関数
 @brief 周波数を入力するとwrap値が出力される
 @param (float pulsefreq):周波数(Hz)
 @return wrap値
 @details モーター速度をPWMで制御するためにwrap値というものが必要周波数の方がわかりやすいため
 　　　　　ユーザーからの入力は周波数とし、変換する関数で対応
+---------------------------------------------------------------------
  */
 uint16_t Hz_wrap(float pulsefreq){
   //F=sysclock/(wrap+1)*clkdiv
   return (125000000/(pulsefreq*100))-1;
   //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
+}
+
+/*
+---------------------------------------------------------------------
+@fn　距離取得
+@brief Step数から距離を計算する関数
+@param (uint64_t Step_L,R) ステップ数 
+@return float
+@details 実行メニューや、走行に仕様する変数をリセットする
+---------------------------------------------------------------------
+ */
+float Get_Direction(uint64_t StepL,uint64_t StepR){
+  float Temp = 0.0;
+  //StepL/2:Stepは立ち上がり、立下がりを合わせた値なので、パルスの数はその半分
+  //(StepL/2.0 + StepR/2.0)/2.0:LとRを合わせて平均値をとる
+  Temp = (StepL/2.0 + StepR/2.0)/2.0;
+  //総ステップ数×ステップ距離=総距離(mm) -20.0は現実の値に合わせるための調整値
+  return (Temp * 0.785398163375)-20.0;
 }
 
 /*
@@ -124,6 +160,10 @@ void Reset(){
   one = 0;
   //Scene4スピード変数リセット
   Speed = 0.0;
+  //タイマ停止
+  TimerSW = 0;
+  //距離計測停止
+  StepSW == 0;
   Serial.print("Reset");
 }
 
@@ -1091,17 +1131,30 @@ void Scene3() {
  */
 void Scene4() {
   //PWM
-  pwm_set_wrap(pwm_slice1, Hz_wrap(Speed));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(Speed));
+//  pwm_set_wrap(pwm_slice1, Hz_wrap(Speed));
+//  pwm_set_wrap(pwm_slice2, Hz_wrap(Speed));
+
   Speed=Speed + 1;
-  if(Speed>150){
-    Speed=1500;
+  if(Speed>1500){
+    Speed=1800;
   }
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
+//  pwm_set_enabled(pwm_slice1, true);
+//  pwm_set_enabled(pwm_slice2, true);
+StepSW = 1;
+    
+  interval1 = frequencyToInterval(250);
+  interval2 = frequencyToInterval(250);
+ Serial.print(" Step_L:");
+ Serial.print(Step_L);
+ Serial.print(" Step_R:");
+ Serial.print(Step_R);
+ Serial.print("Direction:");
+ Serial.println(Get_Direction(Step_L,Step_R));
+   if (Get_Direction(Step_L,Step_R) > 300) {  //停止位置は試走会で調整
 
-
-
+      Reset();
+      Run = 0;
+    }
 }
 //テスト
 /*

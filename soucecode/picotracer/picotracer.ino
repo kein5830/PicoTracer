@@ -138,6 +138,21 @@ static unsigned long oled_prevmillis = 0;
 static unsigned long button_prevmillis = 0;
 static unsigned long run_prevmillis = 0;
 
+//モータ動作用変数
+//経過時刻変数
+unsigned long currentMicros = micros();
+//以前の周期記録変数
+unsigned long lastStepTime1 = 0;
+unsigned long lastStepTime2 = 0;
+//ソフトウェアタイマー周期
+unsigned long interval1 = 0;
+unsigned long interval2 = 0;
+
+//タイマスイッチ
+bool TimerSW = 0;
+//ステップ数計測スイッチ
+bool StepSW = 0;
+
 //Scene4用スピード記録変数
 static float Speed = 0.0;
 
@@ -154,7 +169,12 @@ static float Speed = 0.0;
 //    uint16_t R_motor_log;
 //    uint16_t L_motor_log;
 //   }Log;
-   static uint16_t log_count = 0;
+static uint16_t log_count = 0;
+
+uint64_t Step_L = 0;
+uint64_t Step_R = 0;
+
+
 //----------------------------------------------------------
 //　関数プロトタイプ宣言
 //----------------------------------------------------------
@@ -299,6 +319,33 @@ void loop() {
     sw2 = digitalRead(downswitch);
     button_prevmillis = currentMillis;
   }
+  
+  //----------------------------------------------------------
+  //　モーター動作用周期処理
+  //----------------------------------------------------------
+  //モーターONOFFスイッチ
+  if(TimerSW == 1){
+    // モーター1のステップ制御
+    if ((currentMicros = micros()) - lastStepTime1 >= interval1) {
+      lastStepTime1 = currentMicros;
+      digitalWrite(CLOCK_R, !digitalRead(CLOCK_R));
+      //ステップ数計測スイッチ 
+      if(StepSW == 1){
+        Step_L++;
+      }
+      
+    }
+  
+    // モーター2のステップ制御
+    if ((currentMicros = micros()) - lastStepTime2 >= interval2) {
+      lastStepTime2 = currentMicros;
+      digitalWrite(CLOCK_L, !digitalRead(CLOCK_L));
+      if(StepSW == 1){
+        Step_R++;
+      }
+    }
+  }
+  
   //----------------------------------------------------------
   //　イベント処理
   //----------------------------------------------------------
@@ -352,7 +399,9 @@ void loop() {
         //モーター電源オン
         digitalWrite(ENABLE_L, LOW);
         digitalWrite(ENABLE_R, LOW);
-
+        //タイマスタート
+        TimerSW = 1;
+        
         //Running...表示させるために1回ディスプレイを更新
         Oled_Update(voltage, Scene, Run);
         one = 1; 
