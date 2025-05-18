@@ -73,9 +73,9 @@ RPI_PICO_Timer ITimer0(0);
 unsigned int toggle0 = 0;
 unsigned int toggle1 = 0;
 
-//pwm関連変数
-int intervalL = 0;
-int intervalR = 0;
+//ライン距離格納用配列
+uint16_t LineDitection[100];
+
 
 bool pulseL = 0;
 bool pulseR = 0;
@@ -90,7 +90,7 @@ int sensorL = 0;
 int sensorR = 0;
 int sensorRR = 0;
 int sensorGoal = 0;
-int Curve = 0;
+int sensorCurve = 0;
 
 uint16_t Add_SensorL = 0;
 uint16_t Add_SensorR = 0;
@@ -125,8 +125,8 @@ float dgain = 0;
 //Iゲイン
 float igain = 0.0004;
 //センサカウント
-static int count = 0, cross = 0;
-static bool tmp = 0, tmpc = 0,curve_count=0;
+static int count = 0, cross = 0,curve_count;
+static bool tmp = 0, tmpc = 0,curve_temp=0;
 // 電圧値監視
 float voltage = 0.0;
 
@@ -146,8 +146,8 @@ unsigned long currentMicros = micros();
 unsigned long lastStepTime1 = 0;
 unsigned long lastStepTime2 = 0;
 //ソフトウェアタイマー周期
-unsigned long interval1 = 0;
-unsigned long interval2 = 0;
+unsigned long intervalR = 0;
+unsigned long intervalL = 0;
 
 //タイマスイッチ
 bool TimerSW = 0;
@@ -324,10 +324,10 @@ void loop() {
   //----------------------------------------------------------
   //　モーター動作用周期処理
   //----------------------------------------------------------
-  //モーターONOFFスイッチ
+  //モーターONOFFスイッチ　ONなら回転開始
   if(TimerSW == 1){
     // モーター1のステップ制御
-    if ((currentMicros = micros()) - lastStepTime1 >= interval1) {
+    if ((currentMicros = micros()) - lastStepTime1 >= intervalR) {
       lastStepTime1 = currentMicros;
       digitalWrite(CLOCK_R, !digitalRead(CLOCK_R));
       //ステップ数計測スイッチ 
@@ -338,7 +338,7 @@ void loop() {
     }
   
     // モーター2のステップ制御
-    if ((currentMicros = micros()) - lastStepTime2 >= interval2) {
+    if ((currentMicros = micros()) - lastStepTime2 >= intervalL) {
       lastStepTime2 = currentMicros;
       digitalWrite(CLOCK_L, !digitalRead(CLOCK_L));
       if(StepSW == 1){
@@ -350,7 +350,7 @@ void loop() {
   //----------------------------------------------------------
   //　イベント処理
   //----------------------------------------------------------
-  //Sceneの遷移は待機モードの時のみ可能
+  //実行Sceneの遷移処理(待機モードの時のみ可能)
   if(Run == 0){
     //Scene番号をボタンを押すたびに次ぎの番号へ遷移させていく処理
     if (sw1 == 1 && temp1 == 0) {
@@ -370,7 +370,7 @@ void loop() {
     temp2 = 0;
   }
   
-  //実行、停止
+  //実行モード、待機モード切り替え
   if (sw2 == 1 && temp2 == 0) {
     Run = !Run;
   //走行中にプッシュスイッチが押された場合、各変数をリセット
@@ -400,7 +400,7 @@ void loop() {
         //モーター電源オン
         digitalWrite(ENABLE_L, LOW);
         digitalWrite(ENABLE_R, LOW);
-        //タイマスタート
+        //モーター動作ON
         TimerSW = 1;
         
         //Running...表示させるために1回ディスプレイを更新
@@ -419,10 +419,12 @@ void loop() {
             Scene1();
             break;
           case 2:
-            Scene2();
+            // Scene2();
+            Oled_Update(voltage, Scene, 2);
             break;
           case 3:
-            Scene3();
+            // Scene3();
+            Oled_Update(voltage, Scene, 2);
             break;
           case 4:
             Scene4();
