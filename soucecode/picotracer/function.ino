@@ -114,7 +114,7 @@ uint16_t Hz_wrap(float pulsefreq){
 @details 実行メニューや、走行に仕様する変数をリセットする
 ---------------------------------------------------------------------
  */
-float Get_Direction(uint64_t StepL,uint64_t StepR){
+float Get_Distance(uint64_t StepL,uint64_t StepR){
   float Temp = 0.0;
   //StepL/2:Stepは立ち上がり、立下がりを合わせた値なので、パルスの数はその半分
   //(StepL/2.0 + StepR/2.0)/2.0:LとRを合わせて平均値をとる
@@ -326,31 +326,28 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
 ---------------------------------------------------------------------
  */
 void Scene0() {
-//  //ログ保存用構造体　宣言
-//  static Log data_log[10000];
-/*. 中部会場調整値
-    SP = 450;
-    //Pゲイン
-    pgain = 0.2;
-    //Dゲイン
-    dgain = 0;
-    //Iゲイン
-    igain = 0.0;
-*/
+  //*******************************************************************
+  //メイン走行スピード、PIDのゲイン値、その他ローカル変数定義
+  //*******************************************************************
+  
+
   if(c == 0){
     //基準速度
-    SP = 500;
+    SP = 400;
     //Pゲイン
     pgain = 0.35;
     //Dゲイン
     dgain = 0;
     //Iゲイン
     igain = 0.0;
+    
     // 1回しか入らないようcを1にする
     c=1;
   }
 
-//センサー配置修正12/17
+  //*******************************************************************
+  //センサー値格納　（202412月17日に配置更新）
+  //*******************************************************************
   sensorCurve = analogRead(Curve_Sensor);
   sensorLL = read_adc(ch1, SELPIN1);//sensor ll
   sensorL = read_adc(ch0, SELPIN1)-10;//sensor l
@@ -358,42 +355,63 @@ void Scene0() {
   sensorRR = read_adc(ch0, SELPIN2)+20;//sensor rr
   sensorGoal = analogRead(GOALSENSOR);//
 
+  //必要であれば
+  Serial.print(curve_count, DEC);
+  Serial.print(" ");
+  Serial.print(count, DEC);
+  Serial.print(" ");
+  Serial.print(cross, DEC);
+  Serial.print(" "); 
+  Serial.print(sensorGoal, DEC);
+  Serial.print(" ");
+  Serial.print(sensorCurve, DEC);
+  Serial.print(" ");
+  Serial.print(tmpc, DEC);
+  Serial.println(" ");
 
- Serial.print(curve_count, DEC);
- Serial.print(" ");
- Serial.print(count, DEC);
- Serial.print(" ");
- Serial.print(cross, DEC);
- Serial.print(" "); 
- Serial.print(sensorGoal, DEC);
- Serial.print(" ");
- Serial.print(sensorCurve, DEC);
- Serial.print(" ");
- Serial.print(sensorGoal, DEC);
- Serial.println(" ");
-
-//ラインクロスカウンタ
-  if (tmpc == 0 &&   sensorL < 300 && sensorR < 300 && sensorLL < 300 && sensorRR < 300) {  //速度によって調整
-    cross++;
-    //BUZZER入れたが音小さくて聞こえない
-//    tone(BUZZER,1234,100);
+  //*******************************************************************
+  //ラインカウンタ制御  
+  //*******************************************************************
+  //クロスラインを検知したら、クロスフラグをON
+  if (tmpc == 0 && sensorL < 300 && sensorR < 300 && sensorLL < 300 && sensorRR < 300) {
+    temp_distance = NowDistance;
+    cross = 1;
     tmpc = 1;
-  }
-  if (sensorLL > 700 && sensorRR > 700) {
+    }
+  if ( tmpc == 1 && sensorLL > 700 && sensorRR > 700) {
     tmpc = 0;
   }
 
-  //ゴールセンサーカウンタ
+  //ゴールセンサが検知したらtmpフラグをON
   if (tmp == 0 && sensorGoal < 300 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
-    count++;
+    if(cross != 1){
+      count++;
+      //BUZZER入れたが音小さくて聞こえない
+      tone(BUZZER,1178,100);
+      StepSW = !StepSW;
+    }
     tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-    //BUZZER入れたが音小さくて聞こえない
-//    tone(BUZZER,1178,100);
   }
-  if (sensorGoal > 700) {
+  //ゴールセンサが検知しなくなったらクロスフラグを確認し、ゴールマーカーを追加するか判断
+  if (tmp == 1 && sensorGoal > 700) {
     tmp = 0;
+  }
+
+  // //カーブマーカー検知
+  if (curve_temp == 0  && sensorCurve < 300){
+      if(cross != 1){
+      curve_count++;
+      //BUZZER入れたが音小さくて聞こえない
+      tone(BUZZER,1178,100);
+    }
+    curve_temp = 1;
+  }
+  if (sensorCurve > 700) {
+    curve_temp = 0;
+  }
+  //クロス検知後から35mm進んだらおそらくゴール、カーブセンサは過ぎてるだろうからクロスフラグを戻す（誤検知する場合は調整する）
+  if((NowDistance-temp_distance) >= 35){
+    cross = 0;
   }
 
   // // スタートマーカー通過後に距離計測開始
@@ -401,17 +419,6 @@ void Scene0() {
   //   StepSW = 1;
   // }
   // LineDitection[0] = Get_Direction(Step_L,Step_R)
-  
-  //カーブマーカー検知
-  if(curve_temp == 0  && sensorCurve < 300){
-    curve_count++;
-    curve_temp = 1;
-    curve_count = curve_count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorCurve > 700) {
-    curve_temp = 0;
-  }
 
   //ゴール後少し進んで停止
   if (count == 2) { 
@@ -508,17 +515,15 @@ void Scene0() {
 
   //ログ保存スタートボタンを押してから
   // if(count>=1 && count < 2){
-    data_log[log_count].Curve_log = curve_count;
+    data_log[log_count].Curve_log = count;
     data_log[log_count].LL_log = sensorLL;
     data_log[log_count].L_log = sensorL;
     data_log[log_count].R_log = sensorR;
     data_log[log_count].RR_log = sensorRR;
-    data_log[log_count].Goal_log = cross;
+    data_log[log_count].Goal_log = curve_count;
 //    data_log[log_count].R_motor_log = inputR;
 //    data_log[log_count].L_motor_log = inputL;
-    
     log_count++;  
-    // }
     
 }
 
@@ -1192,8 +1197,8 @@ StepSW = 1;
  Serial.print(" Step_R:");
  Serial.print(Step_R);
  Serial.print("Direction:");
- Serial.println(Get_Direction(Step_L,Step_R));
-   if (Get_Direction(Step_L,Step_R) > 300) {  //停止位置は試走会で調整
+ Serial.println(Get_Distance(Step_L,Step_R));
+   if (Get_Distance(Step_L,Step_R) > 300) {  //停止位置は試走会で調整
 
       Reset();
       Run = 0;
@@ -1217,35 +1222,56 @@ void Scene5() {
   //センサー値出力オンオフ管理変数
   static bool sensor_out=true;
 
+//実際には動かないが、Step上動作させるために定義
+  intervalR = frequencyToInterval(10);//R
+  intervalL = frequencyToInterval(10);//L
   //センサー値出力ONOFF切り替え
   if(sw1 == 1) {
     sensor_out= !sensor_out;
     delay(1000);
   }
 
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 100 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-    //BUZZER入れたが音小さくて聞こえない
-  //    tone(BUZZER,1178,100);
+  //クロスラインを検知したら、クロスフラグをON
+  if (tmpc == 0 && sensorL < 300 && sensorR < 300 && sensorLL < 300 && sensorRR < 300) {
+    temp_distance = NowDistance;
+    cross = 1;
+    tmpc = 1;
+    }
+  if ( tmpc == 1 && sensorLL > 700 && sensorRR > 700) {
+    tmpc = 0;
   }
-  if (sensorGoal > 900) {
+
+  //ゴールセンサが検知したらtmpフラグをON
+  if (tmp == 0 && sensorGoal < 300 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
+    if(cross != 1){
+      count++;
+      //BUZZER入れたが音小さくて聞こえない
+      tone(BUZZER,1178,100);
+      StepSW = !StepSW;
+    }
+    tmp = 1;
+  }
+  //ゴールセンサが検知しなくなったらクロスフラグを確認し、ゴールマーカーを追加するか判断
+  if (tmp == 1 && sensorGoal > 700) {
     tmp = 0;
   }
 
-    //ラインクロスカウンタ
-  if (tmpc == 0 &&   sensorL < 200 && sensorR < 200 && sensorLL < 200 && sensorRR < 200) {  //速度によって調整
-    cross++;
-    //BUZZER入れたが音小さくて聞こえない
-  //    tone(BUZZER,1234,100);
-    tmpc = 1;
+  // // //カーブマーカー検知
+  // if (curve_temp == 0  && sensorCurve < 300){
+  //     if(cross != 1){
+  //     curve_count++;
+  //     //BUZZER入れたが音小さくて聞こえない
+  //     tone(BUZZER,1178,100);
+  //   }
+  // }
+  // if (sensorCurve > 700) {
+  //   curve_temp = 0;
+  // }
+  //クロス検知後から35mm進んだらおそらくゴール、カーブセンサは過ぎてるだろうからクロスフラグを戻す
+  if((NowDistance-temp_distance) >= 35){
+    cross = 0;
   }
-  if (sensorLL > 500 && sensorRR > 500) {
-    tmpc = 0;
-  }
+
   
 
   if(c == 0){
@@ -1298,10 +1324,16 @@ void Scene5() {
     Serial.print(count, DEC);
     Serial.print(" cross=");
     Serial.print(cross, DEC);
-    Serial.print(" P=");
-    Serial.print(P, DEC);
-    Serial.print(" diff=");
-    Serial.print(diff, DEC);
+    Serial.print(" tmpc=");
+    Serial.print(tmpc, DEC);
+    Serial.print(" tmp=");
+    Serial.print(tmp, DEC);
+    Serial.print(" NowDistance=");
+    Serial.print(NowDistance, DEC);
+    Serial.print(" tmp_distance=");
+    Serial.print(temp_distance, DEC);
+    Serial.print(" StepSW=");
+    Serial.print(StepSW, DEC);
     Serial.println(" ");
   }
   

@@ -138,6 +138,7 @@ static unsigned long volt_prevmillis = 0;
 static unsigned long oled_prevmillis = 0;
 static unsigned long button_prevmillis = 0;
 static unsigned long run_prevmillis = 0;
+static unsigned long distance_prevmillis = 0;
 
 //モータ動作用変数
 //経過時刻変数
@@ -172,9 +173,14 @@ static float Speed = 0.0;
 //   }Log;
 static uint16_t log_count = 0;
 
+//Step数
 uint64_t Step_L = 0;
 uint64_t Step_R = 0;
 
+//スタートからの取得時点までの距離 大会のコースで総距離とってみてあまりに大きかったら型のサイズを修正する
+uint32_t NowDistance = 0;
+//クロスフラグ情報を保持する距離計算用
+static uint32_t temp_distance = 0;
 
 //----------------------------------------------------------
 //　関数プロトタイプ宣言
@@ -314,13 +320,20 @@ void loop() {
       oled_prevmillis = currentMillis;
     }
   }
-  //プッシュスイッチONOFF検知 10ms
+  //プッシュスイッチONOFF検知 50ms
   if ((currentMillis = millis()) - button_prevmillis >=  50) {
     sw1 = digitalRead(upswitch);
     sw2 = digitalRead(downswitch);
     button_prevmillis = currentMillis;
   }
   
+  //現在の距離取得 10ms　基本的にスタートマーカを踏んだ時にStepを取るのでスタートからの距離が代入されていく
+  if ((currentMillis = millis()) - distance_prevmillis >=  10) {
+    //uint = float なので小数点は切り捨て
+    NowDistance = Get_Distance(Step_L,Step_R);
+    distance_prevmillis = currentMillis;
+  }
+
   //----------------------------------------------------------
   //　モーター動作用周期処理
   //----------------------------------------------------------
