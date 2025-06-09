@@ -1,5 +1,6 @@
 #include <Arduino.h>
-
+#ifndef TYPES_H
+#define TYPES_H
 //ログ保存用構造体定義
   typedef struct {
     //ライン検知センサ
@@ -14,4 +15,6 @@
 //    uint16_t L_motor_log;
    }Log;
 
-   Log data_log[10000];
+  Log data_log[10000];
+
+#endif
