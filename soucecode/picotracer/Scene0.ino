@@ -12,11 +12,9 @@ void Scene0() {
   //*******************************************************************
   //メイン走行スピード、PIDのゲイン値、その他ローカル変数定義
   //*******************************************************************
-  
-
   if(c == 0){
     //基準速度
-    SP = 400;
+    SP = 600;
     //Pゲイン
     pgain = 0.35;
     //Dゲイン
@@ -27,7 +25,8 @@ void Scene0() {
     // 1回しか入らないようcを1にする
     c=1;
   }
-
+  static uint16_t tmp_distance = 0;
+  static uint8_t index = 0;
   //*******************************************************************
   //センサー値格納　（202412月17日に配置更新）
   //*******************************************************************
@@ -38,19 +37,19 @@ void Scene0() {
   sensorRR = read_adc(ch0, SELPIN2)+20;//sensor rr
   sensorGoal = analogRead(GOALSENSOR);//
 
-  //必要であれば
-  Serial.print(curve_count, DEC);
-  Serial.print(" ");
-  Serial.print(count, DEC);
-  Serial.print(" ");
-  Serial.print(cross, DEC);
-  Serial.print(" "); 
-  Serial.print(sensorGoal, DEC);
-  Serial.print(" ");
-  Serial.print(sensorCurve, DEC);
-  Serial.print(" ");
-  Serial.print(tmpc, DEC);
-  Serial.println(" ");
+  // //必要であれば
+  // Serial.print(curve_count, DEC);
+  // Serial.print(" ");
+  // Serial.print(temp_distance, DEC);
+  // Serial.print(" ");
+  // Serial.print(cross, DEC);
+  // Serial.print(" "); 
+  // Serial.print(NowDistance, DEC);
+  // Serial.print(" ");
+  // Serial.print(sensorCurve, DEC);
+  // Serial.print(" ");
+  // Serial.print(tmpc, DEC);
+  // Serial.println(" ");
 
   //*******************************************************************
   //ラインカウンタ制御  
@@ -80,31 +79,37 @@ void Scene0() {
     tmp = 0;
   }
 
-  // //カーブマーカー検知
+  //カーブマーカー検知
   if (curve_temp == 0  && sensorCurve < 300){
+      //クロスではない場合
       if(cross != 1){
-      curve_count++;
-      //BUZZER入れたが音小さくて聞こえない
-      tone(BUZZER,1178,100);
-    }
-    curve_temp = 1;
+        curve_count++;      
+        //BUZZER入れたが音小さくて聞こえない
+        tone(BUZZER,1178,100);
+        //スタートから1個目のマーカの時
+        if(curve_count==1){
+          tmp_distance = NowDistance;
+          marker_distance[curve_count-1] = tmp_distance;
+          //スタートから2個目以降のマーカー
+        }else if(curve_count >=2){
+        marker_distance[curve_count-1] = NowDistance - tmp_distance;
+        tmp_distance = NowDistance;
+        }
+      curve_temp = 1;
+      }
   }
-  if (sensorCurve > 700) {
+  if (sensorCurve > 700) { 
     curve_temp = 0;
   }
   //クロス検知後から35mm進んだらおそらくゴール、カーブセンサは過ぎてるだろうからクロスフラグを戻す（誤検知する場合は調整する）
-  if((NowDistance-temp_distance) >= 35){
+  if((NowDistance-temp_distance) >= 43){
     cross = 0;
   }
 
-  // // スタートマーカー通過後に距離計測開始
-  // if(count == 1){
-  //   StepSW = 1;
-  // }
-  // LineDitection[0] = Get_Direction(Step_L,Step_R)
-
-  //ゴール後少し進んで停止
-  if (count == 2) { 
+  //ゴール後処理
+  if (count == 2) {
+    //最後のマーカからゴールまでの距離を保存する
+    marker_distance[curve_count] = NowDistance - tmp_distance;
     if (b == 0) {
       //タイマースタート処理
       ITimer0.stopTimer();
@@ -198,11 +203,11 @@ void Scene0() {
 
   //ログ保存スタートボタンを押してから
   // if(count>=1 && count < 2){
-    data_log[log_count].Curve_log = count;
-    data_log[log_count].LL_log = sensorLL;
-    data_log[log_count].L_log = sensorL;
+    data_log[log_count].Curve_log = cross;
+    data_log[log_count].LL_log = sensorCurve;
+    data_log[log_count].L_log = NowDistance;
     data_log[log_count].R_log = sensorR;
-    data_log[log_count].RR_log = sensorRR;
+    data_log[log_count].RR_log = temp_distance;
     data_log[log_count].Goal_log = curve_count;
 //    data_log[log_count].R_motor_log = inputR;
 //    data_log[log_count].L_motor_log = inputL;

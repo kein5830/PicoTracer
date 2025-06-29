@@ -1,4 +1,3 @@
-//Gitのテストによる変更
 //----------------------------------------------------------
 //　使用ライブラリinclude
 //----------------------------------------------------------
@@ -125,7 +124,7 @@ float dgain = 0;
 //Iゲイン
 float igain = 0.0004;
 //センサカウント
-static int count = 0, cross = 0,curve_count;
+static int count = 0, cross = 0,curve_count = 0;
 static bool tmp = 0, tmpc = 0,curve_temp=0;
 // 電圧値監視
 float voltage = 0.0;
@@ -181,6 +180,8 @@ uint64_t Step_R = 0;
 uint32_t NowDistance = 0;
 //クロスフラグ情報を保持する距離計算用
 static uint32_t temp_distance = 0;
+
+uint16_t marker_distance[100];
 
 //----------------------------------------------------------
 //　関数プロトタイプ宣言

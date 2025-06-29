@@ -176,23 +176,27 @@ void Scene5() {
 //@details
 //---------------------------------------------------------------------
 void Scene6(){
-
   static uint16_t cou = 0;
 
-  Serial.print(data_log[cou].Curve_log);
-  Serial.print("  ,  ");
-  Serial.print(data_log[cou].LL_log);
-  Serial.print("  ,  ");
-  Serial.print(data_log[cou].L_log);
-  Serial.print("  ,  ");
-  Serial.print(data_log[cou].R_log);
-  Serial.print(",  ");
-  Serial.print(data_log[cou].RR_log);
-  Serial.print("  ,  ");
-  Serial.print(data_log[cou].Goal_log);
-  Serial.print("  ,    ");
-  Serial.println(cou);  
+  // Serial.print(data_log[cou].Curve_log);
+  // Serial.print("  ,  ");
+  // Serial.print(data_log[cou].LL_log);
+  // Serial.print("  ,  ");
+  // Serial.print(data_log[cou].L_log);
+  // Serial.print("  ,  ");
+  // Serial.print(data_log[cou].R_log);
+  // Serial.print(",  ");
+  // Serial.print(data_log[cou].RR_log);
+  // Serial.print("  ,  ");
+  // Serial.print(data_log[cou].Goal_log);
+  // Serial.print("  ,    "); 
+
+  Serial.print(cou);
+  Serial.print(":");
+  Serial.println(marker_distance[cou]);
+
   cou++;
+  // if(cou > 100){cou = 100;}
   if(cou > log_count){
       Reset();
       Run = 0;
