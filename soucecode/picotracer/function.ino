@@ -51,21 +51,34 @@ int read_adc(int channel, int select) {
 //@return おそらく割り込まれて時にtrueを返すだけだと思うが未調査
 //@details 現在はゴール後に一定距離走行し、停止するための距離測定に利用
 //---------------------------------------------------------------------
-bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
-  //距離測定用
-    static int del = 0;
-    del++;
-    if (del >= 2) {
-       Step++;
-       distance = Step * 1.5;
-       del = 0;
-     }
-  Serial.print(" distance:");
-  Serial.println(distance);
 
+// バッテリー電圧更新＋OLEDディスプレイ更新処理
+bool callback0(struct repeating_timer *t) {  //割り込む関数
+  // バッテリー電圧更新
+  voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.3);//値修正
+  // OLEDディスプレイ更新
+  Oled_Update(voltage, Scene, Run); 
   return true;
 }
 
+// プッシュスイッチのON、OFF検知処理
+bool callback1(struct repeating_timer *t) {  //割り込む関数
+  sw1 = digitalRead(upswitch);
+  sw2 = digitalRead(downswitch);
+  return true;
+}
+
+// 現在の走行距離更新処理
+bool callback2(struct repeating_timer *t) {  //割り込む関数
+  //uint = float なので小数点は切り捨て
+  NowDistance = Get_Distance(Step_L,Step_R);
+  return true;
+}
+
+// bool callback3(struct repeating_timer *t) {  //割り込む関数
+
+//   return true;
+// }
 //---------------------------------------------------------------------
 //@fn　周波数＿周期変換関数
 //@brief ステッピングモータ速度用の周波数を周期に変換する関数
@@ -80,7 +93,7 @@ unsigned long frequencyToInterval(float freq) {
 }
 
 //---------------------------------------------------------------------
-//@fn　周波数からwrap値に変換する関数
+//@fn　周波数からwrap値に変換する関数　→　未使用
 //@brief 周波数を入力するとwrap値が出力される
 //@param (float pulsefreq):周波数(Hz)
 //@return wrap値
@@ -98,7 +111,7 @@ uint16_t Hz_wrap(float pulsefreq){
 }
 
 //---------------------------------------------------------------------
-//@fn　距離取得
+//@fn　距離取得 (mm)
 //@brief Step数から距離を計算する関数
 //@param (uint64_t Step_L,R) ステップ数 
 //@return float
@@ -109,7 +122,7 @@ float Get_Distance(uint64_t StepL,uint64_t StepR){
   //StepL/2:Stepは立ち上がり、立下がりを合わせた値なので、パルスの数はその半分
   //(StepL/2.0 + StepR/2.0)/2.0:LとRを合わせて平均値をとる
   Temp = (StepL/2.0 + StepR/2.0)/2.0;
-  //総ステップ数×ステップ距離=総距離(mm) -20.0は現実の値に合わせるための調整値
+  //総ステップ数×ステップ距離=総距離(mm) -20.0は現実の値に合わせるための調整値 step角：1.8°
   return (Temp * 0.785398163375)-20.0;
 }
 
@@ -128,8 +141,8 @@ void Reset(){
   //一回しか実行しないための変数（なぜかｂしか使ってない）
   b = 0, c = 0,one = 0;
   //入力速度
-  inputL = 0;
-  inputR = 0;
+  PID_Result = 0;
+
   //PID制御
   P = 0.0;
   D = 0.0;
@@ -139,24 +152,31 @@ void Reset(){
   beforediff = 0;
   sum = 0;
   //ラインカウンタ
-  count = 0, cross = 0;
+  count = 0, cross = 0,curve_count = 0;
   tmp = 0, tmpc = 0;
   //PWM停止
-  pwm_set_enabled(pwm_slice1, false);
-  pwm_set_enabled(pwm_slice2, false);
+  // pwm_set_enabled(pwm_slice1, false);
+  // pwm_set_enabled(pwm_slice2, false);
   delay(100);
   //モーター電源オフ
   digitalWrite(ENABLE_L, HIGH);
   digitalWrite(ENABLE_R, HIGH);
-  //初回しか実行しない変数リセット
-  one = 0;
   //Scene4スピード変数リセット
   Speed = 0.0;
   //タイマ停止
   TimerSW = 0;
   //距離計測停止
   StepSW == 0;
-  Serial.print("Reset");
+  // Serial.print("Reset");
+  interval = 0;
+
+  Step_L = 0;
+  Step_R = 0;
+  NowDistance = 0;
+  //ディスプレイ表示、バッテリ電圧更新タイマー再開 
+  ITimer0.attachInterrupt(10, callback0);
+  // プッシュスイッチのON、OFF検知処理
+  ITimer1.attachInterrupt(20, callback1);  //左モーター
 }
 
 //---------------------------------------------------------------------
