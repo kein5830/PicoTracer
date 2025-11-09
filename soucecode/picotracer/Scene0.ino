@@ -6,49 +6,54 @@
 //@brief ライントレース走行
 //@param なし
 //@return void
-//@details　PI制御　スタート時のゆっくり加速なし 最高速度450 定速
+//@details　PI制御　スタート時のゆっくり加速なし 最高速度300 定速
 //---------------------------------------------------------------------
 void Scene0() {
   //*******************************************************************
   //メイン走行スピード、PIDのゲイン値、その他ローカル変数定義
   //*******************************************************************
+  //初期
   if(c == 0){
     //基準速度
-    SP = 600;
+    interval_tar = 350;
     //Pゲイン
-    pgain = 0.35;
+    pgain = 0.3;
     //Dゲイン
     dgain = 0;
     //Iゲイン
     igain = 0.0;
     
-    // 1回しか入らないようcを1にする
+
     c=1;
   }
   static uint16_t tmp_distance = 0;
-  static uint8_t index = 0;
+
   //*******************************************************************
   //センサー値格納　（202412月17日に配置更新）
   //*******************************************************************
   sensorCurve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN1);//sensor ll
-  sensorL = read_adc(ch0, SELPIN1)-10;//sensor l
-  sensorR = read_adc(ch1, SELPIN2);//sensor r
-  sensorRR = read_adc(ch0, SELPIN2)+20;//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);//
+  sensorLL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN1);
+  sensorR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN2);
+  sensorGoal = analogRead(GOALSENSOR);
 
   // //必要であれば
-  // Serial.print(curve_count, DEC);
-  // Serial.print(" ");
-  // Serial.print(temp_distance, DEC);
-  // Serial.print(" ");
-  // Serial.print(cross, DEC);
-  // Serial.print(" "); 
-  // Serial.print(NowDistance, DEC);
-  // Serial.print(" ");
   // Serial.print(sensorCurve, DEC);
   // Serial.print(" ");
-  // Serial.print(tmpc, DEC);
+  // Serial.print(sensorLL, DEC);
+  // Serial.print(" ");
+  // Serial.print(sensorL, DEC);
+  // Serial.print(" "); 
+  // Serial.print(sensorR, DEC);
+  // Serial.print(" ");
+  // Serial.print(sensorRR, DEC);
+  // Serial.print(" ");
+  // Serial.print(sensorGoal, DEC);
+  // Serial.print(" ");
+  // Serial.print(NowDistance, DEC);
+  //   Serial.print(" ");
+  // Serial.print(temp_distance, DEC);
   // Serial.println(" ");
 
   //*******************************************************************
@@ -70,7 +75,7 @@ void Scene0() {
       count++;
       //BUZZER入れたが音小さくて聞こえない
       tone(BUZZER,1178,100);
-      StepSW = !StepSW;
+      // StepSW = !StepSW;
     }
     tmp = 1;
   }
@@ -108,32 +113,36 @@ void Scene0() {
 
   //ゴール後処理
   if (count == 2) {
-    //最後のマーカからゴールまでの距離を保存する
-    marker_distance[curve_count] = NowDistance - tmp_distance;
     if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
+      //最後のマーカからゴールまでの距離を保存する
+      marker_distance[curve_count] = NowDistance - tmp_distance;
+      // //タイマースタート処理
+      // ITimer0.stopTimer();
+      // ITimer0.attachInterrupt(100, callback0);  //自宅コースはスタートエリアが狭いため一時的に無効化し即停止するようにしている
+      interval_tar = 0;
+      first_count = curve_count;
       Step = 0;
     }
     b=1;
     
   }
-  if (distance > 100) {  //停止位置は試走会で調整
+  if (count >= 2 && interval < 10) {  //停止位置は試走会で調整
       ITimer0.stopTimer();
+      ITimer1.stopTimer();
       Reset();
       Run = 0;
+
       tone(BUZZER,1446,1000); 
     }
-
-  Add_SensorL = sensorL + sensorLL;
-  Add_SensorR = sensorR + sensorRR;
+  //ライン制御
+  // Add_SensorL = sensorL + sensorLL;
+  // Add_SensorR = sensorR + sensorRR;
 
   //今回の差分
-  diff = Add_SensorL - Add_SensorR - bias;  //biasは試走会で調整
-
+  diff = (sensorL + sensorLL) - (sensorR + sensorRR) - bias;  //biasは試走会で調整
+  
   //-50~50なら差分なしとする
-  if(diff<=650 && diff>=-650){
+  if(diff<=400 && diff>=-400){
     diff=0;
   }
   //  Serial.print("diff:");
@@ -147,70 +156,25 @@ void Scene0() {
   I = sum * igain;
   //入力速度にPID制御値を代入
   //Dを-にしてPで発生するオーバーシュートを抑える形にすることも検討
-  inputL = SP + (P + D + I);
-  inputR = SP - (P + D + I);
-
-  //前回の差分を保存
+  PID_Result = P + D + I;
+  // Serial.print("PID_Result：");
+  // Serial.println(PID_Result);
+  //前回の差分を保存き
   beforediff = diff;
-
-  //最大値補正
-  if (inputL > (SP+100)) {
-    inputL = SP+100;
-  }
-  if (inputR > (SP+100)) {
-    inputR = (SP+100);
-  }
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
+  
   //クロス通過時は速度を固定する
   if (sensorLL < 400 && sensorRR < 400) {
-    inputL = SP;
-    inputR = SP;
+    PID_Result = 0;
   }
 
-  //速度設定 Slice1＝Reft Slice2=Left
-  // pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  // pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-  //PWMスタート
-  // pwm_set_enabled(pwm_slice1, true);
-  // pwm_set_enabled(pwm_slice2, true);
-
-  //距離計測開始
-  // StepSW = 1; 
-  //下記のようにすることで、モータを動作させる
-  intervalR = frequencyToInterval(inputR);//R
-  intervalL = frequencyToInterval(inputL);//L
-
-  // Serial.print(" Step_L:");
-  // Serial.print(Step_L);
-  // Serial.print(" Step_R:");
-  // Serial.print(Step_R);
-  // Serial.print("Direction:");
-  // Serial.println(Get_Direction(Step_L,Step_R));
-  //  if (Get_Direction(Step_L,Step_R) > 300) {  //停止位置は試走会で調整
-
-  //     Reset();
-  //     Run = 0;
-  //   }
-
-
-
   //ログ保存スタートボタンを押してから
-  // if(count>=1 && count < 2){
-    data_log[log_count].Curve_log = cross;
-    data_log[log_count].LL_log = sensorCurve;
-    data_log[log_count].L_log = NowDistance;
-    data_log[log_count].R_log = sensorR;
-    data_log[log_count].RR_log = temp_distance;
-    data_log[log_count].Goal_log = curve_count;
-//    data_log[log_count].R_motor_log = inputR;
-//    data_log[log_count].L_motor_log = inputL;
-    log_count++;  
+    // data_log[log_count].Curve_log = sensorCurve;
+    // data_log[log_count].LL_log = curve_count;
+    // data_log[log_count].L_log = NowDistance;
+    // data_log[log_count].R_log = cross;
+    // data_log[log_count].RR_log = temp_distance;
+    // data_log[log_count].Goal_log = count;
+//    data_log[log_count].L_motor_log = PID_Result;
+    // log_count++;  
     
 }
