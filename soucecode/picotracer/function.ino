@@ -1,14 +1,16 @@
+//構造体インクルード
+#include "types.h"
+//flash メモリ 2025/06/09時点で未使用
+#include <hardware/flash.h>
 
-/*
----------------------------------------------------------------------
-@fn　ADコンバータ(mcp3002)の値取得関数
-@brief 2つのADコンバータの値を順番に取得する
-@param (int channel) ADコンバータのch番号 ch0 or ch1
-@param (int select) ２つ搭載しているADコンバータの指定 SELPIN1 or SELPIN2
-@return AD変換値（ラインセンサー値）
-@details 接続しているラインセンサーの値を取得する
----------------------------------------------------------------------
- */
+//---------------------------------------------------------------------
+//@fn　ADコンバータ(mcp3002)の値取得関数
+//@brief 2つのADコンバータの値を順番に取得する
+//@param (int channel) ADコンバータのch番号 ch0 or ch1
+//@param (int select) ２つ搭載しているADコンバータの指定 SELPIN1 or SELPIN2
+//@return AD変換値（ラインセンサー値）
+//@details 接続しているラインセンサーの値を取得する
+//---------------------------------------------------------------------
 int read_adc(int channel, int select) {
   int adcvalue = 0;
   //byte commandbits = B11000000;  //B(スタート)(1:シングルエンドモード)
@@ -42,55 +44,95 @@ int read_adc(int channel, int select) {
   return adcvalue;
 }
 
-//タイマー割り込み関数 ここまで
+//---------------------------------------------------------------------
+//@fn　タイマー割り込み関数
+//@brief タイマーに設定した周期で割り込む関数
+//@param (struct repeating_timer *t) 構造体？詳細不明
+//@return おそらく割り込まれて時にtrueを返すだけだと思うが未調査
+//@details 現在はゴール後に一定距離走行し、停止するための距離測定に利用
+//---------------------------------------------------------------------
 
-/*
----------------------------------------------------------------------
-@fn　タイマー割り込み関数
-@brief タイマーに設定した周期で割り込む関数
-@param (struct repeating_timer *t) 構造体？詳細不明
-@return おそらく割り込まれて時にtrueを返すだけだと思うが未調査
-@details 現在はゴール後に一定距離走行し、停止するための距離測定に利用
----------------------------------------------------------------------
- */
-bool TimerHandler0(struct repeating_timer *t) {  //割り込む関数
-  //距離測定用
-    static int del = 0;
-    del++;
-    if (del >= 2) {
-       Step++;
-       distance = Step * 1.5;
-       del = 0;
-     }
-  Serial.print(" distance:");
-  Serial.println(distance);
-
+// バッテリー電圧更新＋OLEDディスプレイ更新処理
+bool callback0(struct repeating_timer *t) {  //割り込む関数
+  // バッテリー電圧更新
+  voltage = ((analogRead(VOLT) * 3.3 / 1024) * 6.3);//値修正
+  // OLEDディスプレイ更新
+  Oled_Update(voltage, Scene, Run); 
   return true;
 }
 
-/*
-@fn　周波数からwrap値に変換する関数
-@brief 周波数を入力するとwrap値が出力される
-@param (float pulsefreq):周波数(Hz)
-@return wrap値
-@details モーター速度をPWMで制御するためにwrap値というものが必要周波数の方がわかりやすいため
-　　　　　ユーザーからの入力は周波数とし、変換する関数で対応
- */
+// プッシュスイッチのON、OFF検知処理
+bool callback1(struct repeating_timer *t) {  //割り込む関数
+  sw1 = digitalRead(upswitch);
+  sw2 = digitalRead(downswitch);
+  return true;
+}
+
+// 現在の走行距離更新処理
+bool callback2(struct repeating_timer *t) {  //割り込む関数
+  //uint = float なので小数点は切り捨て
+  NowDistance = Get_Distance(Step_L,Step_R);
+  return true;
+}
+
+// bool callback3(struct repeating_timer *t) {  //割り込む関数
+
+//   return true;
+// }
+//---------------------------------------------------------------------
+//@fn　周波数＿周期変換関数
+//@brief ステッピングモータ速度用の周波数を周期に変換する関数
+//@param 周波数（ステッピングモータの速度）
+//@return 周期（タイマ関数への入力専用）
+//@details// HIGH/LOW 1サイクルあたり
+//?はif文と同じ　freq > 0なら1000000.0 / (freq * 2) 走じゃないなら 1000000を返す
+//1000000.0 / (freq * 2) 　1000000.0はs -> us変換　freq * 2は パルス波のHIGHとLOWの２個分があるためその分の計算 　
+//---------------------------------------------------------------------
+unsigned long frequencyToInterval(float freq) {
+  return (freq > 0) ? (1000000.0 / (freq * 2)) : 1000000;  
+}
+
+//---------------------------------------------------------------------
+//@fn　周波数からwrap値に変換する関数　→　未使用
+//@brief 周波数を入力するとwrap値が出力される
+//@param (float pulsefreq):周波数(Hz)
+//@return wrap値
+//@details モーター速度をPWMで制御するためにwrap値というものが必要周波数の方がわかりやすいため
+//　　　　　ユーザーからの入力は周波数とし、変換する関数で対応
+//---------------------------------------------------------------------
 uint16_t Hz_wrap(float pulsefreq){
   //F=sysclock/(wrap+1)*clkdiv
-  return (125000000/(pulsefreq*100))-1;
+  uint32_t Wrap =(125000000/(pulsefreq*2*100))-1;
+  if(Wrap > 65535){
+    Wrap = 65535;
+  }  
+  return Wrap;
   //125000000:raspipicoのシステムクロック 100:システムクロックを100分割していること
 }
 
-/*
----------------------------------------------------------------------
-@fn　リセット関数
-@brief 実行メニューや、走行に仕様する変数をリセットする
-@param なし
-@return void
-@details 実行メニューや、走行に仕様する変数をリセットする
----------------------------------------------------------------------
- */
+//---------------------------------------------------------------------
+//@fn　距離取得 (mm)
+//@brief Step数から距離を計算する関数
+//@param (uint64_t Step_L,R) ステップ数 
+//@return float
+//@details 実行メニューや、走行に仕様する変数をリセットする
+//---------------------------------------------------------------------
+float Get_Distance(uint64_t StepL,uint64_t StepR){
+  float Temp = 0.0;
+  //StepL/2:Stepは立ち上がり、立下がりを合わせた値なので、パルスの数はその半分
+  //(StepL/2.0 + StepR/2.0)/2.0:LとRを合わせて平均値をとる
+  Temp = (StepL/2.0 + StepR/2.0)/2.0;
+  //総ステップ数×ステップ距離=総距離(mm) -20.0は現実の値に合わせるための調整値 step角：1.8°
+  return (Temp * 0.785398163375)-20.0;
+}
+
+//---------------------------------------------------------------------
+//@fn　リセット関数
+//@brief 実行メニューや、走行に仕様する変数をリセットする
+//@param なし
+//@return void
+//@details 実行メニューや、走行に仕様する変数をリセットする
+//---------------------------------------------------------------------
 void Reset(){
   //プッシュスイッチカウント
   Scene = 0;
@@ -99,8 +141,8 @@ void Reset(){
   //一回しか実行しないための変数（なぜかｂしか使ってない）
   b = 0, c = 0,one = 0;
   //入力速度
-  inputL = 0;
-  inputR = 0;
+  PID_Result = 0;
+
   //PID制御
   P = 0.0;
   D = 0.0;
@@ -110,31 +152,41 @@ void Reset(){
   beforediff = 0;
   sum = 0;
   //ラインカウンタ
-  count = 0, cross = 0;
+  count = 0, cross = 0,curve_count = 0;
   tmp = 0, tmpc = 0;
+  //PWM停止
+  // pwm_set_enabled(pwm_slice1, false);
+  // pwm_set_enabled(pwm_slice2, false);
+  delay(100);
   //モーター電源オフ
   digitalWrite(ENABLE_L, HIGH);
   digitalWrite(ENABLE_R, HIGH);
-  //初回しか実行しない変数リセット
-  one = 0;
-  //PWM停止
-  pwm_set_enabled(pwm_slice1, false);
-  pwm_set_enabled(pwm_slice2, false);
   //Scene4スピード変数リセット
   Speed = 0.0;
-  Serial.print("Reset");
+  //タイマ停止
+  TimerSW = 0;
+  //距離計測停止
+  StepSW == 0;
+  // Serial.print("Reset");
+  interval = 0;
+
+  Step_L = 0;
+  Step_R = 0;
+  NowDistance = 0;
+  //ディスプレイ表示、バッテリ電圧更新タイマー再開 
+  ITimer0.attachInterrupt(10, callback0);
+  // プッシュスイッチのON、OFF検知処理
+  ITimer1.attachInterrupt(20, callback1);  //左モーター
 }
 
-/*
----------------------------------------------------------------------
-@fn　OLED表示更新関数
-@brief OLEDの表示内容を指定し、更新する
-@param (float volt) バッテリの電圧値
-@param (float runmode) 実行番号 
-@return void
-@details 実行メニューや、走行に仕様する変数をリセットする
----------------------------------------------------------------------
- */
+//---------------------------------------------------------------------
+//@fn　OLED表示更新関数
+//@brief OLEDの表示内容を指定し、更新する
+//@param (float volt) バッテリの電圧値
+//@param (float runmode) 実行番号 
+//@return void
+//@details 実行メニューや、走行に仕様する変数をリセットする
+//---------------------------------------------------------------------
 void Oled_Update(float volt,int runscene,uint8_t runmode ){
   //点滅表示用処理
   static uint8_t count = 0;
@@ -201,746 +253,69 @@ void Oled_Update(float volt,int runscene,uint8_t runmode ){
   display.display();  // 表示実行
 }
 
-/*
----------------------------------------------------------------------
-@fn　走行関数Scene0
-@brief ライントレース走行
-@param なし
-@return void
-@details　PI制御　スタート時のゆっくり加速なし 最高速度450 定速
----------------------------------------------------------------------
- */
-void Scene0() {
+//---------------------------------------------------------------------
+//@fn　Flashメモリへ書き込み処理（中）
+//@brief 
+//@param 
+//@param 
+//@return 
+//@details 
+//---------------------------------------------------------------------
 
-  if(c == 0){
-    //基準速度
-    SP = 450;
-    //Pゲイン
-    pgain = 0.35;
-    //Dゲイン
-    dgain = 0;
-    //Iゲイン
-    igain = 0.0005;
-    // 1回しか入らないようcを1にする
-    c=1;
-  }
-
-
-  Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);
-
-//  Serial.print(Curve, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorLL, DEC)
-//  Serial.print(" ");
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" "); 
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorGoal, DEC);
-//  Serial.print(" ");
-
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 100 ){  //速度によって調整  && sensorRR > 500 && sensorLL > 500 && Curve > 800
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorGoal > 900) {
-    tmp = 0;
-  }
-
-  //ラインクロスカウンタ
-  if (tmpc == 0 &&   sensorL < 200 && sensorR < 200 && sensorLL < 200 && sensorRR < 200) {  //速度によって調整
-    cross++;
-    tmpc = 1;
-  }
-  if (sensorLL > 500 && sensorRR > 500) {
-    tmpc = 0;
-  }
-  //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
-    if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
-      Step = 0;
-    }
-    b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
-    
-  }
-  if (distance > 100) {  //停止位置は試走会で調整
-      ITimer0.stopTimer();
-      Reset();
-      Run = 0; 
-    }
-
-  //今回の差分
-  diff = sensorL - sensorR - bias;  //biasは試走会で調整
-
-  //  Serial.print("diff:");
-  //  Serial.print(diff);
-  sum += diff;
-  //P制御
-  P = diff * pgain;
-  //D制御
-  D = (beforediff - diff) * dgain;
-  //I制御
-  I = sum * igain;
-  //入力速度にPID制御値を代入
-  inputL = SP + (P + D + I);
-  inputR = SP - (P + D + I);
-
-  //前回の差分を保存
-  beforediff = diff;
-
-  //最大値補正
-  if (inputL > (SP+100)) {
-    inputL = SP+100;
-  }
-  if (inputR > (SP+100)) {
-    inputR = (SP+100);
-  }
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
-  //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SP;
-    inputR = SP;
-  }
-
-  //速度設定 Slice1＝Reft Slice2=Left
-  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-
-  //PWMスタート
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
-
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(tmp);
-//  Serial.print(" tmpc:");
-//  Serial.println(tmpc);
-//  
-}
-
-//基本走行
-//P制御走行　カーブがきつくゲインをあげすぎるとがたがた　厳しそう
-/*
----------------------------------------------------------------------
-@fn　走行関数Scene1
-@brief ライントレース走行
-@param なし
-@return void
-@details　P制御のみ　スタート時のゆっくり加速あり+0.35　最高速度850
----------------------------------------------------------------------
- */
-void Scene1() {
-  
-  if(c == 0){
-    //基準速度
-    SP = 0;
-    //Pゲイン
-    pgain = 0.32;
-    //Dゲイン
-    // dgain = 3;
-    //Iゲイン
-    igain = 0.0023;
-    // 1回しか入らないようcを1にする
-    c = 1;
-  }
-  Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);
-
-//  Serial.print(Curve, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorLL, DEC)
-//  Serial.print(" ");
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" "); 
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorGoal, DEC);
-//  Serial.print(" ");
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorGoal > 900) {
-    tmp = 0;
-  }
-
-  //ラインクロスカウンタ
-  if (tmpc == 0 && sensorLL < 300 && sensorL < 300 && sensorR < 300) {  //速度によって調整
-    cross++;
-    tmpc = 1;
-  }
-  if (sensorLL > 500) {
-    tmpc = 0;
-  }
-
-  //今回の差分
-  diff = sensorL - sensorR - bias;  //biasは試走会で調整
-
-  //  Serial.print("diff:");
-  //  Serial.print(diff);
-  sum += diff;
-  //P制御
-  P = diff * pgain;
-  //D制御
-  D = (beforediff - diff) * dgain;
-  //I制御
-  I = sum * igain;
-
-  //入力速度にPID制御値を代入
-  inputL = SP + (P + D + I);
-  inputR = SP - (P + D + I);
-
-  //前回の差分を保存
-  beforediff = diff;
-  //速度設定 Slice1＝Reft Slice2=Left
-  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-
-  //PWMスタート
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
-  //最大値補正
-  if (inputL > (SP+100)) {
-    inputL = SP+100;
-  }
-  if (inputR > (SP+100)) {
-    inputR = (SP+100);
-  }
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
-  //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SP;
-    inputR = SP;
-  }
-
-  SP=SP + 1;
-  if(SP>850.0){
-    SP=850.0;
-  }
-
-  //ゴール後少し進んで停止
-  if (count == 2) { 
-    if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
-      Step = 0;
-    }
-    b=1;
-    
-  }
-  if (distance > 200) {  //停止位置は試走会で調整
-      ITimer0.stopTimer();
-      inputL=0.0;
-      inputR=0.0;
-      Reset();
-      Run =0;
-    }
-
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(distance);
-//  Serial.print(" SP:");
-//  Serial.println(SP);
-  
-}
-
-/*
----------------------------------------------------------------------
-@fn　走行関数Scene2
-@brief ライントレース走行
-@param なし
-@return void
-@details　PI制御　スタート時のゆっくり加速あり　+0.25 最高速度700
----------------------------------------------------------------------
- */
-void Scene2() {
-  
-  if(c == 0){
-    //基準速度
-    SP = 0;
-    //Pゲイン
-    pgain = 0.3;
-    //Dゲイン
-    dgain = 0;
-    //Iゲイン
-    igain = 0.0015;
-    // 1回しか入らないようcを1にする
-    c = 1;
-  }
-
-  Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);
-
-//  Serial.print(Curve, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorLL, DEC)
-//  Serial.print(" ");
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" "); 
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorGoal, DEC);
-//  Serial.print(" ");
-
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorGoal > 900) {
-    tmp = 0;
-  }
-
-  //ラインクロスカウンタ
-  if (tmpc == 0 && sensorLL < 300 && sensorL < 300 && sensorR < 300) {  //速度によって調整
-    cross++;
-    tmpc = 1;
-  }
-  if (sensorLL > 500) {
-    tmpc = 0;
-  }
-
-  //今回の差分
-  diff = sensorL - sensorR - bias;  //biasは試走会で調整
-
-  //  Serial.print("diff:");
-  //  Serial.print(diff);
-  sum += diff;
-  //P制御
-  P = diff * pgain;
-  //D制御
-  D = (beforediff - diff) * dgain;
-  //I制御
-  I = sum * igain;
-  //入力速度にPID制御値を代入
-  inputL = SP + (P + D + I);
-  inputR = SP - (P + D + I);
-
-  //前回の差分を保存
-  beforediff = diff;
-  //速度設定 Slice1＝Reft Slice2=Left
-  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-
-  //PWMスタート
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
-  //最大値補正
-  if (inputL > (SP+100)) {
-    inputL = SP+100;
-  }
-  if (inputR > (SP+100)) {
-    inputR = (SP+100);
-  }
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
-  //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SP;
-    inputR = SP;
-  }
-
-  SP=SP + 1;
-  if(SP>700.0){
-    SP=700.0;
-  }
-
-  //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
-    if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
-      Step = 0;
-    }
-    b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
-    
-  }
-  if (distance > 200) {  //停止位置は試走会で調整
-      ITimer0.stopTimer();
-      inputL=0.0;
-      inputR=0.0;
-      Reset();
-      Run = 0;
-    }
-
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(distance);
-//  Serial.print(" SP:");
-//  Serial.println(SP);
-  
-}
-
-
-//2023/11/04
-//完走 accelrun　検証中
-/*
----------------------------------------------------------------------
-@fn　走行関数Scene3
-@brief ライントレース走行
-@param なし
-@return void
-@details　PI制御　スタート時のゆっくり加速あり+0.35 最高速度800
----------------------------------------------------------------------
- */
-void Scene3() {
-  
-  if(c == 0){
-    //基準速度
-    SP = 0;
-    //Pゲイン
-    pgain = 0.32;
-    //Dゲイン
-    // dgain = 3;
-    //Iゲイン
-    igain = 0.0023;
-    // 1回しか入らないようcを1にする
-    c = 1;
-  }
-         
-  Curve = analogRead(Curve_Sensor);
-  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-  sensorL = read_adc(ch0, SELPIN2);//sensor l
-  sensorR = read_adc(ch1, SELPIN1);//sensor r
-  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-  sensorGoal = analogRead(GOALSENSOR);
-
-//  Serial.print(Curve, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorLL, DEC)
-//  Serial.print(" ");
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" "); 
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  Serial.print(sensorGoal, DEC);
-//  Serial.print(" ");
-
-  //ゴールセンサーカウンタ
-  if (tmp == 0 && sensorGoal < 300) {  //速度によって調整
-    count++;
-    tmp = 1;
-    count = count - cross;  //クロスの分をカウントしないようにクロスの部分を通った時に引く
-    cross = cross - cross;
-  }
-  if (sensorGoal > 900) {
-    tmp = 0;
-  }
-
-  //ラインクロスカウンタ
-  if (tmpc == 0 && sensorLL < 300 && sensorL < 300 && sensorR < 300) {  //速度によって調整
-    cross++;
-    tmpc = 1;
-  }
-  if (sensorLL > 500) {
-    tmpc = 0;
-  }
-
-  //今回の差分
-  diff = sensorL - sensorR - bias;  //biasは試走会で調整
-
-  //  Serial.print("diff:");
-  //  Serial.print(diff);
-  sum += diff;
-  //P制御
-  P = diff * pgain;
-  //D制御
-  D = (beforediff - diff) * dgain;
-  //I制御
-  I = sum * igain;
-
-// 　初速が遅い時はゲインを弱くする 実現できず、、、
-// if(inputL < 400 || inputR < 400){
-//     //Pゲイン
-//     pgain = 0.3;
-//     //Dゲイン
-//     dgain = 0;
-//     //Iゲイン
-//     igain = 0.0004;
-//   }
-  //入力速度にPID制御値を代入
-  inputL = SP + (P + D + I);
-  inputR = SP - (P + D + I);
-
-  //前回の差分を保存
-  beforediff = diff;
-  //速度設定 Slice1＝Reft Slice2=Left
-  pwm_set_wrap(pwm_slice1, Hz_wrap(inputR));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(inputL));
-
-  //PWMスタート
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
-  //最大値補正
-  if (inputL > (SP+100)) {
-    inputL = SP+100;
-  }
-  if (inputR > (SP+100)) {
-    inputR = (SP+100);
-  }
-  //最小値補正
-  if (inputL < 0) {
-    inputL = 0;
-  }
-  if (inputR < 0) {
-    inputR = 0;
-  }
-
-  //クロス通過時は速度を固定する
-  if (sensorLL < 300 && sensorRR < 300) {
-    inputL = SP;
-    inputR = SP;
-  }
-
-  SP=SP + 1;
-  if(SP>800.0){
-    SP=800.0;
-  }
-
-  //ゴール後少し進んで停止
-  if (count == 2) {  //いいいいいいいいいいいいいいいいいいいいいいいいいいいい一時的
-    if (b == 0) {
-      //タイマースタート処理
-      ITimer0.stopTimer();
-      ITimer0.attachInterrupt(inputL, TimerHandler0);  //左モーター
-      Step = 0;
-    }
-    b=1;
-    //  Serial.print(" tmp=");
-    //  Serial.println(tmp);
-    
-  }
-  if (distance > 200) {  //停止位置は試走会で調整
-      ITimer0.stopTimer();
-      inputL=0.0;
-      inputR=0.0;
-      Reset();
-      Run = 0;
-    }
-
-//  Serial.print(" P:");
-//  Serial.print(P);
-//  Serial.print(" D:");
-//  Serial.print(D);
-//  Serial.print(" I:");
-//  Serial.print(I);
-//  Serial.print(" inputL:");
-//  Serial.print(inputL);
-//  Serial.print(" inputR:");
-//  Serial.print(inputR);
-//  Serial.print(" count:");
-//  Serial.print(count);
-//  Serial.print(" cross:");
-//  Serial.print(cross);
-//  Serial.print(" tmp:");
-//  Serial.print(distance);
-//  Serial.print(" SP:");
-//  Serial.println(SP);
-
-}
-
-/*
----------------------------------------------------------------------
-@fn　モーター動作確認用関数
-@brief モーターが加速していく
-@param なし
-@return void
-@details　ハードウェアを変更した時にモーターが動作するかを確認するようの関数
----------------------------------------------------------------------
- */
-void Scene4() {
-  //PWM
-  pwm_set_wrap(pwm_slice1, Hz_wrap(Speed));
-  pwm_set_wrap(pwm_slice2, Hz_wrap(Speed));
-  Speed=Speed + 1;
-  if(Speed>1500){
-    Speed=1500;
-  }
-  pwm_set_enabled(pwm_slice1, true);
-  pwm_set_enabled(pwm_slice2, true);
-
-
-
-}
-//テスト
-/*
----------------------------------------------------------------------
-@fn　試験用関数
-@brief 新機能などの試験用
-@param なし
-@return void
-@details　新機能などを軽く試すための場所11/21現在は未使用
----------------------------------------------------------------------
- */
-void Scene5() {
-//  int step = 0;
-//  int ct=0,mode = 0; 
-  //int deg[45] = {49,48,}
-  //旋回
-//  digitalWrite(CWCCW_L, HIGH);
-//  digitalWrite(CWCCW_R, HIGH); 
-  //  モーターテストコード
-//  output = !output;
-//  delay(2);
-//  Serial.print("count: ");
-//  Serial.print(count);
-// Serial.print(step);
-// Serial.print(" ");
- //count二回で1.8° 400カウントでタイヤ１周
- //94.575mm(左右タイヤの中心感覚) * 3.14/8 =37.12mm (45°)
- //タイヤ円周＝48mm(直径)*3.14=150.72mm: 360°
- //150.72/200=0.7536mm : 1.8° count二回で0.7536mm動く.  37.12/0.7536=49.2569 *2 count=98.5 45°
-
- //前回の仕様の場合count:105 45° count:92 40° count:81 35° count:69 30° count:58 25° count:46 20° count:35 15° count:23 10° count:12 5° count:0 0° 1°あたり2.3count 
-//sw検知
-//sw1 = digitalRead(upswitch);
-//sw2 = digitalRead(downswitch);
-////sw2 loopからbreak
-//if(sw1==1){
-//  Reset();
-//  break;
-//}
-////sw1を押すことでモード実行
-//if (sw2 == 1){
-//    mode = 1;
-//    delay(300);
+/*W25Q16JVのBlock12のセクタ0の先頭アドレス = 0x2c0000
+ブロック番号  開始アドレス  終了アドレス
+//1走目
+20  0x2C0000  0x2FFFFF
+21  0x300000  0x33FFFF
+22  0x340000  0x37FFFF
+23  0x380000  0x3BFFFF
+//2走目
+24  0x3C0000  0x3FFFFF
+25  0x400000  0x43FFFF
+26  0x440000  0x47FFFF
+27  0x480000  0x4BFFFF
+//3走目
+28  0x4C0000  0x4FFFFF
+29  0x500000  0x53FFFF
+30  0x540000  0x57FFFF
+31  0x580000  0x5BFFFF
+*/
+//工事中
+//const uint32_t FLASH_TARGET_OFFSET[3] = {0x2c0000,0x3C0000,0x4C0000};
+//
+//uint8_t Write_data_temp1=0,Write_data_temp2=0;
+//uint8_t Write_data[FLASH_PAGE_SIZE];
+//uint16_t i,count=0,temp=0; 
+//
+//bool Flash_Write(){
+//      for(i=0;i<=log_count;i++){
+//          //値を取得して、分割して代入
+//          if((i+1)%2 != 0){
+//            //奇数
+//            Write_data_temp1=data_log[count].Curve_log >> 8;
+//            Write_data[i]=Write_data_temp1;
+//          }else{
+//            //偶数
+//            Write_data_temp2=data_log[count].Curve_log - (Write_data_temp1<<8);
+//            Write_data[i]=Write_data_temp2;
+//            count++;
+//          }
+//          //256Byteごとにフラッシュに書き込み処理を実行 
+//          if((i+1)%256 == 0){        
+//              // 割り込み無効にする
+//              uint32_t ints = save_and_disable_interrupts();
+//              // Flash消去。
+//              //  消去単位はflash.hで定義されている FLASH_SECTOR_SIZE(4096Byte) の倍数とする
+//              flash_range_erase(FLASH_TARGET_OFFSET[0], FLASH_SECTOR_SIZE);
+//              // Flash書き込み。
+//              //  書込単位はflash.hで定義されている FLASH_PAGE_SIZE(256Byte) の倍数とする
+//              flash_range_program(FLASH_TARGET_OFFSET[0], write_data_temp, FLASH_PAGE_SIZE);
+//              // 割り込みフラグを戻す
+//              restore_interrupts(ints);
+//          }
+//          
+//      }
+//      //log_count分終了したのでフラッシュに書きこみ処理を実行
+//      
+//    return 1;
 //  }
-////stepが50を超えたらmodeを変更し、モーターを止める
-//if(step >= 100){
-//  mode = 2;
-//}
-////mode1 モーターを回す
-//if(mode == 1){
-//  output = !output;
-//  count++;
-//}
-//if(count==2){
-//  step++;
-//  count = 0;
-//}
-
-//digitalWrite(CLOCK_L,output);
-//digitalWrite(CLOCK_R,output);
-//センサーテストコード
-//  Curve = analogRead(Curve_Sensor);
-//  Serial.print(count, DEC);
-//  Serial.print(" ");
-//  sensorLL = read_adc(ch1, SELPIN2);//sensor ll
-//  Serial.print(sensorLL, DEC);
-//  Serial.println(" ");
-//  sensorL = read_adc(ch0, SELPIN2);//sensor l
-//  Serial.print(sensorL, DEC);
-//  Serial.print(" ");
-//  sensorR = read_adc(ch1, SELPIN1);//sensor r
-//  Serial.print(sensorR, DEC);
-//  Serial.print(" ");
-//  sensorRR = read_adc(ch0, SELPIN1);//sensor rr
-//  Serial.print(sensorRR, DEC);
-//  Serial.print(" ");
-//  sensorGoal = analogRead(GOALSENSOR);
-//  Serial.print(sensorGoal, DEC);
-//  Serial.println(" ");
-  // millis()
-  
-}
