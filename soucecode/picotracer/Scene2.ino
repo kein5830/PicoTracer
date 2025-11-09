@@ -8,8 +8,10 @@
 //@return void
 //@details　PI制御　スタート時のゆっくり加速あり　+0.25 最高速度700
 //---------------------------------------------------------------------
-// void Scene2() {
-  
+void Scene2() {
+  //モーター電源オフ
+  digitalWrite(ENABLE_L, HIGH);
+  digitalWrite(ENABLE_R, HIGH);
 //  //  //ログ保存用構造体　宣言
 // //  static Log data_log[10000];
 // /*
@@ -35,26 +37,32 @@
 //   }
 
 // //センサー配置修正12/17
-//   Curve = analogRead(Curve_Sensor);
-//   sensorLL = read_adc(ch1, SELPIN1);//sensor ll
-//   sensorL = read_adc(ch0, SELPIN1)-10;//sensor l
-//   sensorR = read_adc(ch1, SELPIN2)-10;//sensor r
-//   sensorRR = read_adc(ch0, SELPIN2)+20;//sensor rr
-//   sensorGoal = analogRead(GOALSENSOR);
+  sensorCurve = analogRead(Curve_Sensor);
+  sensorLL = read_adc(ch1, SELPIN1);
+  sensorL = read_adc(ch0, SELPIN1);
+  sensorR = read_adc(ch1, SELPIN2);
+  sensorRR = read_adc(ch0, SELPIN2);
+  sensorGoal = analogRead(GOALSENSOR);
 
-// //  Serial.print(Curve, DEC);
-// //  Serial.print(" ");
-// //  Serial.print(sensorLL, DEC)
-// //  Serial.print(" ");
-// //  Serial.print(sensorL, DEC);
-// //  Serial.print(" "); 
-// //  Serial.print(sensorR, DEC);
-// //  Serial.print(" ");
-// //  Serial.print(sensorRR, DEC);
-// //  Serial.print(" ");
-// //  Serial.print(sensorGoal, DEC);
-// //  Serial.print(" ");
-
+// 正規化処理　正規化後の値 = （元の値 – 最小値）÷（最大値 – 最小値）
+Curve = (float)(sensorCurve - sensorCurveMin)/(float)(sensorCurveMax - sensorCurveMin);
+LL = (float)(sensorLL - sensorLLMin)/(float)(sensorLLMax - sensorLLMin);
+L = (float)(sensorL - sensorLMin)/(float)(sensorLMax - sensorLMin);
+R = (float)(sensorR - sensorRMin)/(float)(sensorRMax - sensorRMin);
+RR = (float)(sensorRR - sensorRRMin)/(float)(sensorRRMax - sensorRRMin);
+Goal = (float)(sensorGoal - sensorGoalMin)/(float)(sensorGoalMax - sensorGoalMin);
+ Serial.print(Curve, DEC);
+ Serial.print(" ");
+ Serial.print(LL, DEC);
+ Serial.print(" ");
+ Serial.print(L, DEC);
+ Serial.print(" "); 
+ Serial.print(R, DEC);
+ Serial.print(" ");
+ Serial.print(RR, DEC);
+ Serial.print(" ");
+ Serial.print(Goal, DEC);
+ Serial.println(" ");
 
 // //ラインクロスカウンタ
 //   if (tmpc == 0 &&   sensorL < 300 && sensorR < 300 && sensorLL < 300 && sensorRR < 300) {  //速度によって調整
@@ -234,4 +242,4 @@
 //     log_count++;  
 //     // }
   
-// }
+}
